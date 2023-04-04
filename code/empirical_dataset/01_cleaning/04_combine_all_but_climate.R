@@ -6,11 +6,6 @@
 # was tracked to do survival analysis, exploring
 # factors that influence the survival of nests.
 
-# the resulting dataframe will also be slimmed down
-# for the stage-specific models for egg production
-# survival, and nestling survival
-
-
 # Load packages -----------------------------------------------------------
 
 package.list <- c("here", "tidyverse", 
@@ -61,14 +56,7 @@ visits <- read_xlsx(here("data_raw",
 
 nests <- trt_covs %>%
   dplyr::select(-Point_ID) %>%
-  left_join(tree_data, by = c("Nest_ID" = "Measurement_ID")) %>%
-  #group Tx by something larger than just the OG numbers
-  mutate(Time_groups = case_when(Tm_since_tx %in% c("0", "1", 
-                                                    "2", "3", "4", "5") ~ "0-5",
-                                 Tm_since_tx %in% c("6", "7",
-                                                    "8", "9", "10") ~ "6-10",
-                                 Tm_since_tx %in% c("11", "12", "13", "14") ~ "11-14",
-                                 TRUE ~ Tm_since_tx))
+  left_join(tree_data, by = c("Nest_ID" = "Measurement_ID")) 
 
 #how many nests are in this df?
 nests %>%
@@ -127,9 +115,7 @@ nests3 <- visits2 %>%
                 Slope, Initiation_date, 
                 NoFL_uncert, NoFL_cert, Trees_2550,  Trees_50,
                 pPIPO, PIPO_2550, PIPO_50,  Fate_cat,
-                Peeped, Duration,
-                n_burn, n_harvest, n_tx, Tm_since_b,
-                Tm_since_h, Tm_since_tx, Time_groups) %>%
+                Peeped, Duration) %>%
   # get Julian Days for each start and end
   mutate(Julian_end = as.Date(Visit_date)) %>%
   mutate(Julian_end = format(Julian_end, "%j")) %>%
@@ -148,6 +134,12 @@ nests3 <- visits2 %>%
   #set orientation to be 1 if N, -1 if South
   mutate(cosOrientation = cos(Orientation * (pi/180)))
 
+# t <- nests3 %>%
+#   dplyr::select(Nest_ID, Julian_start, Julian_end, Init_day,
+#                 Visit_date, Initiation_date, Stage)
+# 
+# t2 <- t %>%
+#   filter(Julian_end < Init_day)
 # Remove multiple visits per day ------------------------------------------
 
 #some nests were visited twice in one day and the number of eggs/young
@@ -228,9 +220,7 @@ nests6 <- nests5 %>%
                 a1000_lpi, a1000_lpi1, a1000_lpi2,
                 a1000_np, a1000_np1, a1000_np2,
                 a1000_proxmn2,a1000_Ha, a1000_RxBu,
-                a1000_WFBu, a1000_PBu,
-                n_burn, n_harvest, n_tx, Tm_since_h,
-                Tm_since_b, Tm_since_tx, Time_groups)
+                a1000_WFBu, a1000_PBu)
 
 #filter out wildfire nests
 nests6 <- nests6 %>%

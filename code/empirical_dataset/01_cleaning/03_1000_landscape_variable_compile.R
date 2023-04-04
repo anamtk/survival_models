@@ -3,8 +3,7 @@
 # June 6, 2022
 
 # this script preps the landscape variables for nests, 
-# only at the 1000m radius scale. Thus it's a little
-# less scary than the other script 02c_...
+# only at the 1000m radius scale. 
 
 # Load packages -----------------------------------------------------------
 
