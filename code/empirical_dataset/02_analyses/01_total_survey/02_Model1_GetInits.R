@@ -26,11 +26,10 @@ for(i in package.list){library(i, character.only = T)}
 # Load Data ---------------------------------------------------------------
 # 
 # #load the formatted data for the JAGS model
-data <- readRDS(here("data_outputs",
-                     "model_input_data",
+data <- readRDS(here("data_outputs", 
+                     '03_JAGS_input_data',
                      "empirical",
-                     "model1",
-                     "survival_mod1_JAGS_input_data.RDS"))
+                     "mod1_JAGS_input_data.RDS"))
 
 # Parameters to save ------------------------------------------------------
 
@@ -53,7 +52,7 @@ params <- c(
 
 model <- here("code", 
               "empirical_dataset",
-              "analyses",
+              "02_analyses",
               "01_total_survey",
               "jags",
               "model1.R")
@@ -102,9 +101,10 @@ raf_all %>%
                                      na.rm = T)/3,
             max = max(iterations, 
                       na.rm = T)/3)
+# A tibble: 1 x 3
 # iterations_90 iterations_95    max
 # <dbl>         <dbl>  <dbl>
-#   1         3342.         4073. 25605.
+#   1        19389.        25205. 49789.
 
 bu1 <- raf[[1]]$resmatrix[,1]
 bu2 <- raf[[2]]$resmatrix[,1]
@@ -123,7 +123,7 @@ burn <- as.data.frame(cbind(names, bu1, bu2, bu3)) %>%
 
 burn %>%
   summarise(max(iterations, na.rm = T))
-#70
+#182
 
 # 
 # # Initials ----------------------------------------------------------------

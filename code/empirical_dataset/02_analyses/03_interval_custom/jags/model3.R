@@ -192,16 +192,16 @@ model{
         b[8]*Trees2550[i] +
         b[9]*PercPonderosa[i] +
         #climate covariates
-        b[11]*Tmax[i,j] +
-        b[12]*Tmax[i,j]^2 +
-        b[13]*PPT[i,j] +
-        b[14]*PPT[i,j]^2 +
+        b[10]*Tmax[i,j] +
+        b[11]*Tmax[i,j]^2 +
+        b[12]*PPT[i,j] +
+        b[13]*PPT[i,j]^2 +
         #Landscape covariates
-        b[15]*ForestCV[i] +
-        b[16]*Contag[i] +
-        b[17]*OpenNm[i] +
-        b[18]*LandHa[i] +
-        b[19]*LandBu[i]
+        b[14]*ForestCV[i] +
+        b[15]*Contag[i] +
+        b[16]*OpenNm[i] +
+        b[17]*LandHa[i] +
+        b[18]*LandBu[i]
       
       #each interval survival, p.int, is that daily
       #survival raised to the power of the number
@@ -295,7 +295,7 @@ model{
   }
   b3SpeciesID[1] <- 0
   
-  for(i in 4:19){
+  for(i in 4:18){
     b[i] ~ dnorm(0, 1E-2)
   }
   

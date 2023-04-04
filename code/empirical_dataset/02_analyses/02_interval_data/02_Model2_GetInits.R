@@ -20,78 +20,16 @@ if(length(new.packages)) install.packages(new.packages)
 ## And loading them
 for(i in package.list){library(i, character.only = T)}
 
-#Sys.setenv(JAGS_HOME="C:/Program Files/JAGS/JAGS-4.3.0")
-#library(R2jags)
-
-# Fix parallels -----------------------------------------------------------
-
-#hopefully the parallels issue gets fixed, but for now this if statement works
-# # to set system preferences for jags to run with parallel
-# if (Sys.getenv("RSTUDIO") == "1" && !nzchar(Sys.getenv("RSTUDIO_TERM")) && 
-#     Sys.info()["sysname"] == "Darwin" && getRversion() >= "4.0.0") {
-#   parallel:::setDefaultClusterOptions(setup_strategy = "sequential")
-# }
 
 
 # Load Data ---------------------------------------------------------------
-# 
-# #load the formatted data for the JAGS model
- source(here("code", 
-             "analyses",
-             "01_data_prep.R"))
-# 
-# 
-# # Compile data ------------------------------------------------------------
-# 
-# data <- list(#overall values for likelihood loops
-#                 n.nests = n.nests,
-#                 n.t = n.t,
-#                 n.forests = n.forests,
-#                 #Random variables
-#                 Nest.num = Nest.num,
-#                 Transect.num = Transect.num,
-#                 Year.num = Year.num,
-#                 Forest.num = Forest.num,
-#                 #Interval covariates
-#                 StageID = Stage,
-#                 JulianDate2 = JulianDate2,
-#                 LagPeeped = LagPeeped,
-#                 Age = Age,
-#                 #Treatment covariate
-#                 TreatmentID = TreatmentID,
-#                 TrtTime = TrtTime,
-#                 NTrt = NTrt,
-#                 #Nest-level covariates
-#                 NestHt = NestHt,
-#                 cosOrientation = cosOrientation,
-#                 InitDay = InitDay,
-#                 SpeciesID = SpeciesID,
-#                 #local-level
-#                 Trees50 = Trees50,
-#                 Trees2550 = Trees2550,
-#                 PercPonderosa = PercPonderosa,
-#                 #landscape-level
-#                 Tmax = Tmax,
-#                 PPT = PPT,
-#                 LandHa = LandHa,
-#                 LandBu = LandBu,
-#                 ForestCV = ForestCV,
-#                 Contag = Contag,
-#                 OpenNm = OpenNm,
-#                 #Data
-#                 y = y,
-#                 t = t,
-#                 #numbers for prior distribution loops
-#                 n.transects = n.transects,
-#                 n.years = n.years,
-#                 n.trt = n.trt,
-#                 n.stages = n.stages,
-#                 n.species = n.species,
-#                 n.times = n.times)
-# 
+
+data <- readRDS(here("data_outputs", 
+                     '03_JAGS_input_data',
+                     "empirical",
+                     "mod2_JAGS_input_data.RDS"))
 
 # Parameters to save ------------------------------------------------------
-
 
 params <- c(
             #Random covariate betas
@@ -101,36 +39,32 @@ params <- c(
             'b0',
             #Variance/precision
             'sig.nest',
-            'tau.nest',
             'sig.transect',
             'sig.year',
             'b',
             'b1StageID',
             'b2TreatmentID',
-            'b3SpeciesID',
-            'zi',
-            'zi.b1',
-            'zi.b2',
-            'zi.b3'
+            'b3SpeciesID'
             )
 
 
 # JAGS model --------------------------------------------------------------
 
 model <- here("code", 
-              "analyses",
+              "empirical_dataset",
+              "02_analyses",
+              "02_interval_data",
               "jags",
-              "model_survival_customprobs.R")
+              "model2.R")
 
 Sys.time()
-LogExp.WHWO <- jagsUI::jags(data = all_data,
+jags <- jagsUI::jags(data = all_data,
                             inits = NULL,
                             model.file = model,
                             parameters.to.save = params,
                             parallel = TRUE,
                             n.chains = 3,
-                            n.burnin = 1000,
-                            n.iter = 57000,
+                            n.iter = 4000,
                             DIC = TRUE)
 Sys.time()
 mcmcplot(LogExp.WHWO$samples)
