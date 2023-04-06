@@ -1,25 +1,49 @@
 model {
   #-------------------------------------## 
-  #Model of nest survival ###
+  #Logistic exposure model with interval-specific covariates###
   #-------------------------------------##
+  
+  #this script models nest survival as the surivival 
+  # of a nest dependent on covariates that describe
+  #covariates that stay the same and that change throughout
+  #the nesting season
+  
+  #Attributes of the model:
+  #-Data are nest fates at each survey interval (1-0),
+  ## which are Bernoulli distributed with survival probability, p
+  #-The model has random effects for nest nested within
+  ## transect (hierarchically centered) 
+  ## and year (sum-to-zero) that are identifiable
+  #-The model includes a list of covariates that are dependent
+  ## on nest location, including habitat variables and 
+  ## climate variables, at multiple scales
+  #-The model includes several covariates that are dependent on
+  ## the nest and survey interval 
+  #-Imputed missing covariate values when missing data 
+  ## are minimal
+  
   
   for(i in 1:n.nests) { #for each nest
     for(j in 1:n.t[i]){ #and each interval in which the nest was surveyed
+      
+      #-------------------------------------## 
+      # Likelihood ###
+      #-------------------------------------##
       
       #observed values of y are of a 1/0 bernoulli distribution based on mu,
       #the period survival probability that is daily survival
       #rate raised to t, the number of days in the interval 
       
-      y[i, j] ~ dbern(mu[i,j]) 
+      y[i, j] ~ dbern(p.int[i,j]) 
       
       #period survival probability is determined from
       #regression below raised to the total number of days in the 
       # interval
-      mu[i,j] <- pow(p[i,j], t[i,j])
+      p.int[i,j] <- pow(ps[i,j], t[i,j])
       
       #daily survival probability is based on a 
       #set of covariates on probability
-      cloglog(p[i, j]) <- #hierarchical structure of intercept with hierarchical
+      cloglog(ps[i, j]) <- #hierarchical structure of intercept with hierarchical
         # centering to fix identifiability issues
         b0.nest[Nest.num[i]] + #this encapsulates multiple spatial hierarchies
         #coded into the priors for this - see below
@@ -35,44 +59,54 @@ model {
         b3SpeciesID[SpeciesID[i]] +
         #continuous covariates
         #Nest continuouse covariates
-        b[4]*NestHt[i]+
-        b[5]*cosOrientation[i] +
-        b[6]*InitDay[i]+
-        #local continuouse covariates
-        b[7]*Trees50[i] +
-        b[8]*Trees2550[i] +
-        b[9]*PercPonderosa[i] +
-        #Climate covariates
-        b[10]*Tmax[i,j] +
-        b[11]*Tmax[i,j]^2 +
-        b[12]*PPT[i,j] +
-        b[13]*PPT[i,j]^2 + 
-        #landscape continuous covariates
-        b[14]*ForestCV[i] +
-        b[15]*Contag[i] +
-        b[16]*OpenNm[i] +
-        b[17]*LandHa[i] +
-        b[18]*LandBu[i] 
+        #b[4]*Age[i,j] +
+        b[5]*NestHt[i] +
+        b[6]*cosOrientation[i] +
+        b[7]*InitDay[i] +
+        #local-level covariates
+        b[8]*Trees50[i] +
+        b[9]*Trees2550[i] +
+        b[10]*PercPonderosa[i] +
+        #climate covariates
+        b[11]*Tmax[i,j] +
+        b[12]*Tmax[i,j]^2 +
+        b[13]*PPT[i,j] +
+        b[14]*PPT[i,j]^2 +
+        #Landscape covariates
+        b[15]*ForestCV[i] +
+        b[16]*Contag[i] +
+        b[17]*OpenNm[i] +
+        b[18]*LandHa[i] +
+        b[19]*LandBu[i]
+      
+      #-------------------------------------## 
+      # Imputing missing data ###
+      #-------------------------------------##
+      
+      #Some covariate data are msising, so use the following to model those 
+      # missing data
+      #Basing these distributions off of the distributions of the 
+      # data for each variable
+      
+      #temp and ppt are dependent on forest location
+      Tmax[i, j] ~ dnorm(mu.tmax[Forest.num[i]], tau.tmax[Forest.num[i]])
+      PPT[i,j]~ dnorm(mu.tmax[Forest.num[i]], tau.tmax[Forest.num[i]])
       
       #-------------------------------------## 
       # Model Goodness-of-fit objects ###
       #-------------------------------------##
       
       #Create replicated data for gof
-      yrep[i, j] ~ dbern(mu[i,j])
+      yrep[i, j] ~ dbern(p.int[i,j])
       
       #Residuals
-      resid[i,j] <- y[i,j] - mu[i,j]
-      
-      #-------------------------------------## 
-      # Imputing missing data ###
-      #-------------------------------------##
-      
-      #temp is dependent on forest location
-      Tmax[i,j] ~ dnorm(mu.tmax[Forest.num[i]], tau.tmax[Forest.num[i]])
-      PPT[i,j] ~ dnorm(mu.ppt[Forest.num[i]], tau.ppt[Forest.num[i]])
+      resid[i,j] <- y[i,j] - p.int[i,j]
       
     }
+    
+    #-------------------------------------## 
+    # Imputing missing data ###
+    #-------------------------------------##
     
     #Some covariate data are msising, so use the following to model those 
     # missing data
@@ -147,7 +181,7 @@ model {
   }
   b3SpeciesID[1] <- 0
   
-  for(i in 4:17){
+  for(i in 5:19){
     b[i] ~ dnorm(0, 1E-2)
   }
   
@@ -169,32 +203,12 @@ model {
   sig.orient ~ dunif(0, 20)
   tau.orient <- pow(sig.orient, -2)
   
-  #these need to be indexed by forest ID
-  for(f in 1:n.forests){
-    mu.tmax[f] ~ dunif(-10, 10)
-    sig.tmax[f] ~ dunif(0, 20)
-    tau.tmax[f] <- pow(sig.tmax[f], -2)
-  }
-  
-  #-------------------------------------## 
-  # Covariate P-values ###
-  #-------------------------------------##
-  
-  #generate a 1-0 vector for each covariate
-  #such that 1 = + in that iteration, 0 = - in that iteration
-  # the mean of this value will tell us whether something is mostly positive
-  # (high mean posterior value), mostly negative (low mean posterior value)
-  # or somewhree in the middle (often 0, so 0.5 mean posterior)
-  
-  #generates per level of categorical variables
-  zi.b1 <- step(b1StageID)
-  zi.b2 <- step(b2TreatmentID)
-  zi.b3 <- step(b3SpeciesID)
-  
-  #generate p-values for all continuous covariates
-  for(i in 4:17){
-    zi[i] <- step(b[i])
-  }
+   #these need to be indexed by forest ID
+   for(f in 1:n.forests){
+     mu.tmax[f] ~ dunif(-10, 10)
+     sig.tmax[f] ~ dunif(0, 20)
+     tau.tmax[f] <- pow(sig.tmax[f], -2)
+   }
   
 }
 
