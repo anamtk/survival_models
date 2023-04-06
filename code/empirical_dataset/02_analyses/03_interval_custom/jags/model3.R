@@ -211,6 +211,21 @@ model{
       #this interval survival then goes back into 
       # the overall nest survival with custom
       #probabilities above in the nest loops
+      
+      #-------------------------------------## 
+      # Imputing missing data ###
+      #-------------------------------------##
+      
+      #Some covariate data are msising, so use the following to model those 
+      # missing data
+      #Basing these distributions off of the distributions of the 
+      # data for each variable
+      
+      #temp is dependent on forest location
+      Tmax[i,j] ~ dnorm(mu.tmax[Forest.num[i]], tau.tmax[Forest.num[i]])
+      PPT[i,j] ~ dnorm(mu.ppt[Forest.num[i]], tau.ppt[Forest.num[i]])
+      
+      
     } #interval j
     
     #-------------------------------------## 
@@ -226,10 +241,6 @@ model{
     PercPonderosa[i] ~ dnorm(mu.pp, tau.pp)
     InitDay[i] ~ dnorm(mu.init, tau.init)
     cosOrientation[i] ~ dnorm(mu.orient, tau.orient)
-    
-    #temp is dependent on forest location
-    Tmax[i] ~ dnorm(mu.tmax[Forest.num[i]], tau.tmax[Forest.num[i]])
-    PPT[i] ~ dnorm(mu.ppt[Forest.num[i]], tau.ppt[Forest.num[i]])
     
   } #all nest loop
   

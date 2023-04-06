@@ -21,42 +21,15 @@ source(here("code",
 
 # Load data ---------------------------------------------------------------
 
-#nests8 dataset output from the cleaning code "04_nest_survival_dataprep.R"
-nests <- read.csv(here("data", 
-                       "Nest_survival_data.csv"))
+nests <- read.csv(here("data_outputs",
+                       "02_analysis_ready",
+                       "empirical", 
+                       "interval_models_nest_data.csv"))
 
 
-# Remove specific observations --------------------------------------------
+# Arrange nests by interval number for custom model -----------------------
 
 nests1 <- nests %>%
-  #some zero-day surveys that need to be deleted
-  mutate(Julian_end = case_when(Julian_end == Julian_start ~ NA_integer_,
-                                TRUE ~ Julian_end)) %>%
-  filter(!is.na(Julian_end)) %>%
-  #filter out multiple fledgling obs per nest
-  filter(!(Stage == "F" & No_eggs == 999)) %>%
-  group_by(Nest_ID) %>%
-  #give a visit interval
-  mutate(interval = 0:(n() - 1)) %>%
-  mutate(prevStage = lag(Stage)) %>%
-  ungroup() %>%
-  #remove first survey
-  filter(interval != 0) %>%  #1363
-  filter(prevStage != "F") %>%
-  #make incubating and laying one stage
-  mutate(prevStage = case_when(prevStage == "E" ~ "Ex",
-                               prevStage %in% c("I", "L") ~ "Eg",
-                               prevStage == "N" ~ "Ne",
-                               TRUE ~ NA_character_)) %>%
-  filter(!prevStage == "Ex")
-
-#318 nests total now
-nests1 %>%
-  distinct(Nest_ID) %>%
-  tally()
-
-
-nests1 <- nests1 %>%
   group_by(Nest_ID) %>%
   mutate(n.t = n()) %>%
   ungroup() %>%
@@ -66,11 +39,13 @@ nests1 <- nests1 %>%
 Nests <- nests1 %>%
   distinct(Nest_ID, n.t)
 
+#number with one interval only
 n.nests1 <- Nests %>%
   filter(n.t == 1) %>%
   tally() %>%
   as_vector()
 
+#number with more than one interval
 n.nests2 <- Nests %>%
   filter(n.t > 1) %>%
   tally() %>%
@@ -140,7 +115,7 @@ Nest.num <- 1:tot.nests
 
 Forest <- nests1 %>%
   distinct(Nest_ID,
-           Transect_ID,
+           Transect_ID2,
            Project_ID) %>%
   dplyr::select(Project_ID) %>%
   as_vector()
@@ -150,16 +125,12 @@ Forest.num <- nums(Forest)
 # **might be able to subset these based on previous literature**
 #select all covariates on nest survival
 nest_covs <- nests1 %>%
-  distinct(Nest_ID, Nest_Ht, 
-           Tree_sp, Orientation, Init_day,
-          pPIPO, Trt_cat,
-           Trees_2550, Trees_50,
-           Project_ID, 
-           Tmax, PPT,
+  distinct(Nest_ID, 
+           Nest_Ht, Tree_sp, cosOrientation, Init_day,
+          Trt_cat,
+           Trees_2550, Trees_50, pPIPO, 
            a1000_areacv2, a1000_contag,
-           a1000_np1, a1000_Ha,
-           a1000_RxBu, n_tx, Tm_since_tx, Time_groups) %>% 
-  mutate(cosOrientation = cos(Orientation*(pi/180))) %>% #1 = north, -1 = south
+           a1000_np1, a1000_Ha, a1000_RxBu) %>% 
   mutate_if(is.numeric, scale)  #center and scale continous variables
 
 #Treatment covariate
@@ -176,17 +147,6 @@ n.trt <- length(unique(as.factor(TreatmentID)))
 #3 = harvest
 #4 = harvest burn
 
-TrtTime <- nest_covs %>%
-  mutate(Time_groups = factor(Time_groups,
-                             levels = c("oot", "0-3",
-                                        "4-9", "10+"))) %>%
-  dplyr::select(Time_groups) %>%
-  as_vector() %>%
-  nums()
-
-n.times <- length(unique(TrtTime))
-
-NTrt <- as.vector(nest_covs$n_tx)
 #Nest-level covariates
 NestHt <- as.vector(nest_covs$Nest_Ht)
 
@@ -216,8 +176,6 @@ Trees50 <- as.vector(nest_covs$Trees_50)
 PercPonderosa <- as.vector(nest_covs$pPIPO)
 
 #landscape-scale covariates
-PPT <- as.vector(nest_covs$PPT)
-Tmax <- as.vector(nest_covs$Tmax)
 ForestCV <- as.vector(nest_covs$a1000_areacv2)
 Contag <- as.vector(nest_covs$a1000_contag)
 OpenNm <- as.vector(nest_covs$a1000_np1)
@@ -226,13 +184,29 @@ LandBu <- as.vector(nest_covs$a1000_RxBu)
 
 # Sampling Interval Covariates --------------------------------------------
 
-# #all covariates collected at a per-interval period
-# JulianDate <- cov_matrix(df = nests1,  var = 'Julian_start')
-# 
-# #center and scale all the interval covariates
-# mJD <- mean(as.numeric(JulianDate), na.rm= T)
-# sdJD <- sd(as.numeric(JulianDate), na.rm = T)
-# JulianDate2 <- (JulianDate-mJD)/sdJD
+#Temperature and precip
+Tmax <- nests1 %>%
+  mutate(meanTmax_C = scale(meanTmax_C)) %>%
+  group_by(Nest_ID) %>%
+  mutate(interval = row_number()) %>%
+  ungroup() %>%
+  dplyr::select(Nest_ID, meanTmax_C, interval) %>%
+  pivot_wider(names_from= "interval",
+              values_from = "meanTmax_C") %>%
+  column_to_rownames(var = "Nest_ID") %>%
+  as.matrix()
+
+
+PPT <- nests1 %>%
+  mutate(meanPpt_mm = scale(meanPpt_mm)) %>%
+  group_by(Nest_ID) %>%
+  mutate(interval = row_number()) %>%
+  ungroup() %>%
+  dplyr::select(Nest_ID, meanPpt_mm, interval) %>%
+  pivot_wider(names_from= "interval",
+              values_from = "meanPpt_mm") %>%
+  column_to_rownames(var = "Nest_ID") %>%
+  as.matrix()
 
 # Calculate interval length for each interval
 t <- nests1 %>%
@@ -259,8 +233,8 @@ nests1 %>%
 # get stage of nest for each visit too
 #this should be previous stage
 Stage <- nests1 %>%
-  mutate(StageID = case_when(prevStage == "Ne" ~ 1,
-                             prevStage == "Eg" ~ 2,
+  mutate(StageID = case_when(prevStage == "N" ~ 1,
+                             prevStage %in% c("I", "L") ~ 2,
                              TRUE ~ NA_real_)) %>%
   group_by(Nest_ID) %>%
   mutate(interval  = row_number()) %>%
@@ -271,116 +245,21 @@ Stage <- nests1 %>%
   column_to_rownames(var = 'Nest_ID') %>%
   as.matrix()
 
-n.stages <- length(unique(nests1$prevStage))
-#get lag peeped value
+n.stages <- 2
 
-# nests1 %>%
-#   filter(Peeped == 1) %>%
-#   group_by(Nest_ID, Fate_cat) %>%
-#   tally() %>%
-#   ggplot(aes(x = Fate_cat, y = n)) +
-#   geom_boxplot()
-# 
-# #what this shows is that successful nests had more peeps,
-# # thus, misleading this estimate of survival based on
-# #whether the nest was peeped or not.
-# 
-# LagPeeped <- nests1 %>%
-#   mutate(survival = case_when(Fate_cat == "success" ~ 1,
-#                               Fate_cat == "failure" ~ 0,
-#                               TRUE ~ NA_real_)) %>%
-#   group_by(Nest_ID) %>%
-#   mutate(interval = row_number()) %>%
-#   dplyr::select(Nest_ID, Duration, Peeped, survival, interval,
-#                 Year_located, Project_ID) %>%
-#   #fancy coding to set all previous visits to failed nests = 1
-#   #arrange so the last observation is first
-#   arrange(desc(interval)) %>%
-#   mutate(lag_peeped = lead(Peeped, n=1)) %>%
-#   arrange(interval) %>%
-#   ungroup() %>%
-#   dplyr::select(Nest_ID, interval, lag_peeped) %>%
-#   pivot_wider(names_from = "interval",
-#               values_from = "lag_peeped") %>%
-#   column_to_rownames(var = "Nest_ID") %>%
-#   mutate('1' = replace('1', is.na('1'), 0)) %>%
-#   mutate('1' = case_when('1' == 1 ~ 0,
-#                          TRUE ~ NA_real_)) %>%
-#   as.matrix() 
-# 
-# Age <- nests1 %>%
-#   rowwise() %>%
-#   mutate(Age = Julian_end - Init_day) %>%
-#   ungroup() %>%
-#   mutate(Age2 = scale(Age)) %>%
-#   group_by(Nest_ID) %>%
-#   mutate(interval = row_number()) %>%
-#   dplyr::select(Nest_ID, Age2,  interval) %>%
-#   pivot_wider(names_from = "interval",
-#               values_from = "Age2") %>%
-#   column_to_rownames(var = "Nest_ID") %>%
-#   as.matrix() 
+Age <- nests1 %>%
+  mutate(Age2 = scale(Age)) %>%
+  group_by(Nest_ID) %>%
+  mutate(interval = row_number()) %>%
+  dplyr::select(Nest_ID, Age2,  interval) %>%
+  pivot_wider(names_from = "interval",
+              values_from = "Age2") %>%
+  column_to_rownames(var = "Nest_ID") %>%
+  as.matrix() 
 
-# Response matrix ---------------------------------------------------------
-# 
-# #Observed interval success/failures for each nest
-# y <- nests1 %>%
-#   mutate(survival = case_when(Fate_cat == "success" ~ 1,
-#                               Fate_cat == "failure" ~ 0,
-#                               TRUE ~ NA_real_)) %>%
-#   group_by(Nest_ID) %>%
-#   mutate(interval = row_number()) %>%
-#   dplyr::select(Nest_ID, survival, interval) %>%
-#   #fancy coding to set all previous visits to failed nests = 1
-#   #arrange so the last observation is first
-#   arrange(desc(interval)) %>%
-#   #get the last survival observation, and set all others = NA
-#   mutate(survival_last = case_when(duplicated(survival) ~ NA_real_,
-#                                TRUE ~ survival)) %>%
-#   #now re-create the survival column such that when it was the last observation
-#   # for that nest (survival_last not equal to NA), the nest gets the value for 
-#   # that last fate (so 1-0). If it was a nest observed in any but the last interval
-#   # the assumption is that the nest was alive - so those all get a value of 1
-#   mutate(survival = case_when(!is.na(survival_last) ~ survival_last, 
-#                                TRUE ~ 1)) %>%
-#   ungroup() %>%
-#   arrange(interval) %>%
-#   dplyr::select(interval, survival, Nest_ID) %>%
-#   pivot_wider(names_from = "interval",
-#               values_from = "survival") %>%
-#   column_to_rownames(var = "Nest_ID") 
 
-#Observed interval success/failures for each nest
-# y <- nests1 %>%
-#   mutate(survival = case_when(Fate_cat == "success" ~ 1,
-#                               Fate_cat == "failure" ~ 0,
-#                               TRUE ~ NA_real_)) %>%
-#   group_by(Nest_ID) %>%
-#   mutate(interval = row_number()) %>%
-#   dplyr::select(Nest_ID, survival, interval) %>%
-#   #fancy coding to set all previous visits to failed nests = 1
-#   #arrange so the last observation is first
-#   arrange(desc(interval)) %>%
-#   #get the last survival observation, and set all others = NA
-#   mutate(survival_last = case_when(duplicated(survival) ~ NA_real_,
-#                                    TRUE ~ survival)) %>%
-#   #now re-create the survival column such that when it was the last observation
-#   # for that nest (survival_last not equal to NA), the nest gets the value for 
-#   # that last fate (so 1-0). If it was a nest observed in any but the last interval
-#   # the assumption is that the nest was alive - so those all get a value of 1
-#   mutate(survival = case_when(!is.na(survival_last) ~ survival_last, 
-#                               TRUE ~ 1)) %>%
-#   ungroup() %>%
-#   arrange(interval) %>%
-#   dplyr::select(interval, survival, Nest_ID) %>%
-#   pivot_wider(names_from = "interval",
-#               values_from = "survival") %>%
-#   column_to_rownames(var = "Nest_ID") 
-#   
-#   y %>%
-#     group_by(survival) %>%
-#     tally()
-  
+# Response vector ---------------------------------------------------------
+
 y <- nests1 %>%
   distinct(Nest_ID, Fate_cat) %>%
   mutate(survival = case_when(Fate_cat == "success" ~ 1,
@@ -389,40 +268,8 @@ y <- nests1 %>%
   dplyr::select(survival) %>% 
   as_vector()
   
-length(y[which(y == 1)])
-length(y[which(y == 0)])
-# Variables for derived survival estimates --------------------------------
-
-#how many days are nests in each group? 
-# these values are taken from the literature
-# LayDays <- 5
-# IncubDays <- 14
-# YoungDays <- 26
-# #around 45 day total nest period
-
-# #Median Nesting day for prob calculations
-# nests1 %>%
-#   summarise(median = median(Julian_start, na.rm = T))
-# #177
-# # full period is 40 days according to the literature
-# # But 35 according to our data:
-# nests1 %>%
-#   group_by(Stage) %>%
-#   summarise(mean = mean(Julian_start, na.rm = T))
-# 
-# # 177 is median of the nesting period, so
-# # nesting period ranges from 155 - 192
-# #To get the median Julian day for each period, 
-# #get the median of the day range for each period
-# # and add the start date
-# median(c(1,2,3)) + 155#2
-# median(c(4:19)) +155 #11.5
-# median(c(20:40)) + 155 #30
-# 
-# #then we can center those
-# Lay.Med.JD <- (157 - mJD)/sdJD
-# Incub.Med.JD <- (166.5-mJD)/sdJD
-# Young.Med.JD <- (185-mJD)/sdJD
+length(y[which(y == 1)]) #228
+length(y[which(y == 0)]) #92
 
 # Export as RDS -----------------------------------------------------------
 
@@ -437,7 +284,6 @@ all_data <- list(#Data count variables
                  n.species = n.species,
                  n.stages = n.stages,
                  n.forests = n.forests,
-                 #n.times = n.times,
                  #Random effects IDs
                  Nest.num = Nest.num,
                  Year.num = Year.num,
@@ -445,11 +291,9 @@ all_data <- list(#Data count variables
                  Forest.num = Forest.num,
                  #Interval covariate
                  StageID = Stage,
-                 #Age = Age,
+                 Age = Age,
                  #Treatment covariate
                  TreatmentID = TreatmentID, 
-                 #TrtTime = TrtTime,
-                 #NTrt = NTrt,
                  #Nest-level covariates
                  NestHt = NestHt, 
                  cosOrientation = cosOrientation,
@@ -474,73 +318,7 @@ all_data <- list(#Data count variables
                  t = t)
 
 saveRDS(all_data, here("data_outputs", 
-                       'model_input_data',
-                      "survival_JAGS_custom_input_data.RDS"))
-
-
-# Data summaries ----------------------------------------------------------
-#how many nests per year:
-nests1 %>%
-  distinct(Nest_ID, Year_located, Project_ID, Trt_cat, Fate,
-           Fate_cat) %>%
-  group_by(Year_located) %>%
-  tally()
-
-#avg per year
-nests1 %>%
-  distinct(Nest_ID, Year_located, Project_ID, Trt_cat, Fate,
-           Fate_cat) %>%
-  group_by(Year_located) %>%
-  tally() %>%
-  summarise(mean = mean(n),
-            sd = sd(n),
-            total = n(),
-            se = sd/sqrt(total))
-
-#how many nests per treatment category? 
-nests1 %>%
-  distinct(Nest_ID, Year_located, Project_ID, Trt_cat, Fate,
-           Fate_cat) %>%
-  group_by(Trt_cat) %>%
-  tally() 
-
-#survival overall
-nests1 %>%
-  distinct(Nest_ID, Year_located, Project_ID, Trt_cat, Fate,
-           Fate_cat) %>%
-  group_by(Fate_cat) %>%
-  tally()
-
-#survival by year 
-nests1 %>%
-  distinct(Nest_ID, Year_located, Project_ID, Trt_cat, Fate,
-           Fate_cat) %>%
-  group_by(Fate_cat, Year_located) %>%
-  tally() %>%
-  ungroup() %>%
-  pivot_wider(names_from = "Fate_cat",
-              values_from = "n") %>%
-  rowwise() %>%
-  summarise(success_rate = success/(success + failure)) %>%
-  summarise(mean_rate = mean(success_rate,na.rm =T),
-            sd = sd(success_rate, na.rm =T),
-            total = n(),
-            se = sd/sqrt(total))
-
-# cause of mortality
-nests1 %>%
-  distinct(Nest_ID, Year_located, Project_ID, Trt_cat, Fate,
-           Fate_cat) %>%
-  group_by(Fate) %>%
-  tally()
-#1 = success
-#2 = bear
-# 3 = corvid
-# 4 = squirrel
-# 5 = chipmunk
-# 6 = snake
-# 7 = weather
-# 8 = cavity destroyed
-# 9 = unknown
-# 10 = other
+                       '03_JAGS_input_data',
+                       "empirical",
+                       "mod3_JAGS_input_data.RDS"))
 

@@ -80,6 +80,19 @@ model {
         b[19]*LandBu[i]
       
       #-------------------------------------## 
+      # Imputing missing data ###
+      #-------------------------------------##
+      
+      #Some covariate data are msising, so use the following to model those 
+      # missing data
+      #Basing these distributions off of the distributions of the 
+      # data for each variable
+      
+      #temp and ppt are dependent on forest location
+      Tmax[i, j] ~ dnorm(mu.tmax[Forest.num[i]], tau.tmax[Forest.num[i]])
+      PPT[i,j]~ dnorm(mu.tmax[Forest.num[i]], tau.tmax[Forest.num[i]])
+      
+      #-------------------------------------## 
       # Model Goodness-of-fit objects ###
       #-------------------------------------##
       
@@ -104,9 +117,6 @@ model {
     PercPonderosa[i] ~ dnorm(mu.pp, tau.pp)
     InitDay[i] ~ dnorm(mu.init, tau.init)
     cosOrientation[i] ~ dnorm(mu.orient, tau.orient)
-    
-    #temp is dependent on forest location
-   # Tmax[i] ~ dnorm(mu.tmax[Forest.num[i]], tau.tmax[Forest.num[i]])
     
   }
   
@@ -193,12 +203,12 @@ model {
   sig.orient ~ dunif(0, 20)
   tau.orient <- pow(sig.orient, -2)
   
-  # #these need to be indexed by forest ID
-  # for(f in 1:n.forests){
-  #   mu.tmax[f] ~ dunif(-10, 10)
-  #   sig.tmax[f] ~ dunif(0, 20)
-  #   tau.tmax[f] <- pow(sig.tmax[f], -2)
-  # }
+   #these need to be indexed by forest ID
+   for(f in 1:n.forests){
+     mu.tmax[f] ~ dunif(-10, 10)
+     sig.tmax[f] ~ dunif(0, 20)
+     tau.tmax[f] <- pow(sig.tmax[f], -2)
+   }
   
 }
 

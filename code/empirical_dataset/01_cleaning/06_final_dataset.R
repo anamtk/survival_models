@@ -20,8 +20,6 @@ if(length(new.packages)) install.packages(new.packages)
 ## And loading them
 for(i in package.list){library(i, character.only = T)}
 
-
-
 # Load data ---------------------------------------------------------------
 
 climate <- read.csv(here("data_outputs",
@@ -33,10 +31,22 @@ nests <- read.csv(here('data_outputs',
                  "01_cleaning", 
                  "04_nest_local_land_data.csv"))
 
-
 # interval dataset --------------------------------------------------------
 
 climate2 <- climate %>%
+  #set climate to NA when start == end
+  mutate(maxTmax_C = case_when(Julian_start != Julian_end ~ maxTmax_C,
+                               Julian_start == Julian_end ~ NA_real_,
+                               TRUE ~ NA_real_),
+         meanTmax_C = case_when(Julian_start != Julian_end ~ meanTmax_C,
+                               Julian_start == Julian_end ~ NA_real_,
+                               TRUE ~ NA_real_),
+         maxPpt_mm = case_when(Julian_start != Julian_end ~ maxPpt_mm,
+                               Julian_start == Julian_end ~ NA_real_,
+                               TRUE ~ NA_real_),
+         meanPpt_mm = case_when(Julian_start != Julian_end ~ meanPpt_mm,
+                               Julian_start == Julian_end ~ NA_real_,
+                               TRUE ~ NA_real_)) %>%
   #get rid of starts taht match ends
   mutate(Julian_start = case_when(Julian_start == Julian_end ~ NA_integer_,
                                   TRUE ~ Julian_start)) %>%
@@ -47,8 +57,8 @@ climate2 <- climate %>%
   ungroup() %>%
   #remove rows to combine with other dataset
   dplyr::select(-Year_located, -Julian_start, -Julian_end, -UTM_datum_zone)
-#remove zero-day intervals
 
+#remove zero-day intervals
 nests_int <- nests %>%
   group_by(Nest_ID) %>%
   arrange(Julian_end) %>%
@@ -92,14 +102,17 @@ nests_int2 <- first_obs %>%
   ungroup() %>%
   rowwise() %>%
   mutate(Age = Julian_end - Init_day) %>%
-  filter(!prevStage %in% c("E", "F")) #%>%
-  filter(!is.na(prevStage)) 
+  filter(!prevStage %in% c("E", "F")) %>%
+  #remove any that didn't have a previous stage (time zero obs)
+  filter(!is.na(prevStage)) %>%
+  #make NA julian_start == initiation day
+  mutate(Julian_start = case_when(is.na(Julian_start) ~ Init_day,
+                                  TRUE ~ Julian_start))
 
 write.csv(nests_int2, here("data_outputs",
                "02_analysis_ready",
                "empirical",
                "interval_models_nest_data.csv"))
-
 
 # Full-survey model data --------------------------------------------------
 
@@ -111,8 +124,9 @@ t <- nests_int2 %>%
   group_by(Nest_ID) %>%
   mutate(min = Init_day,
          max = max(Julian_end, na.rm = T)) %>%
+  mutate(min = case_when(is.na(min) ~ min(Julian_start),
+                         TRUE ~ min)) %>%  
   ungroup() %>%
-  mutate(min = coalesce(min, Julian_start)) %>%  
   rowwise() %>%
   #get total days to be max - min
   mutate(exposure = max - min) %>%

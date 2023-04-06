@@ -57,7 +57,7 @@ model <- here("code",
               "jags",
               "model1.R")
 
-jags <- jagsUI::jags(data = all_data,
+jags <- jagsUI::jags(data = data,
                             inits = NULL,
                             model.file = model,
                             parameters.to.save = params,

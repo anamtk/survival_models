@@ -214,7 +214,7 @@ t <- nests %>%
   group_by(Nest_ID) %>%
   mutate(interval = row_number()) %>%
   ungroup() %>%
-  dplyr::select(Nest_ID, interval, Int) #%>%
+  dplyr::select(Nest_ID, interval, Int) %>%
   pivot_wider(names_from = "interval",
               values_from = "Int") %>%
   column_to_rownames(var = "Nest_ID") %>%
@@ -243,7 +243,7 @@ Stage <- nests %>%
   column_to_rownames(var = 'Nest_ID') %>%
   as.matrix()
 
-n.stages <- length(unique(Stage))
+n.stages <- 2
 
 
 Age <- nests %>%

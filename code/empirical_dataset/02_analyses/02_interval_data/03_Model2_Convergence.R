@@ -31,30 +31,17 @@ source(here("code",
 
 # Load model output -------------------------------------------------------
 
-logit <- readRDS(here("monsoon",
-                      "outputs",
-                      "logit_Rhat.RDS"))
-
-cloglog <- readRDS(here('monsoon',
-                        'outputs',
-                        'cloglog_Rhat.RDS'))
-# Posterior distributions and trace plots ---------------------------------
+Rhat <- readRDS(here("monsoon",
+                     "empirical",
+                     "model2",
+                     "outputs",
+                     "model2_Rhat.RDS"))
 
 # Gelman-Rubin ------------------------------------------------------------
 
-parms <- c("b", "b0", "b0.nest", "b0.transect",
-           "b0.year", "deviance", "sig.nest",
-           "sig.transect", "sig.year",
-           "b", "b1StageID", "b2TreatmentID",
-           "b3TrtTime", "b4SpeciesID")
-
-logit <- logit[which(names(logit) %in% parms)]
-cloglog <- cloglog[which(names(cloglog) %in% parms)]
-
-
 #both have converged
-rhat_graph_fun2(logit)
-rhat_graph_fun2(cloglog)
+rhat_graph_fun2(Rhat)
+rhat_graph_fun(Rhat)
 
 
 
