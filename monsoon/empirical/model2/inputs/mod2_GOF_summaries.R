@@ -26,7 +26,7 @@ parms <- c("yrep", 'resid')
 
 mod.update <- update(mod,
                       parameters.to.save = parms,
-                      n.iter = 170,
+                      n.iter = 350,
                       codaOnly = TRUE)
 
 saveRDS(mod.update, 
