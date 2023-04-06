@@ -22,7 +22,7 @@ mod <- readRDS(file = "/scratch/atm234/survival_models/model3/outputs/model3_JAG
 
 # Update for goodness of fit ----------------------------------------------
 
-parms <- c("yrep", 'resid')
+parms <- c("yrep", 'resid', 'p')
 
 mod.update <- update(mod,
                       parameters.to.save = parms,

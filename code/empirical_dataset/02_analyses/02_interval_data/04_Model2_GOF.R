@@ -17,7 +17,8 @@
 package.list <- c("here", "tidyverse", 
                   "coda", "bayesplot",
                   "jagsUI",
-                  "reshape2", "BayesPostEst")
+                  "reshape2", "BayesPostEst",
+                  "pROC")
 
 
 ## Installing them if they aren't already on the computer
@@ -133,4 +134,61 @@ for(i in 1:n.iter){
   ggplot(aes(x = metric, y = value)) +
   geom_boxplot() +
     ylim(0, 1))
+
+
+# AUC ---------------------------------------------------------------------
+
+
+resp <- as.vector(y$Fate_class)
+
+t <- mod_GOF$sims.list$p.int
+t <- mod_GOF$sims.list$p.int[,,1]
+
+t1 <- aperm(t, c(2,3,1))
+
+fun_fun <- function(dat_array, iteration.num){
+  
+  df <- as.data.frame(dat_array[,,iteration.num]) %>%
+    mutate(iteration = iteration.num) %>%
+    mutate(ID = 1:n())
+  
+  return(df)
+  
+}
+
+n.iter <- 1050
+output_list <- list()
+for(j in 1:n.iter){
+  df <- matrix(data = NA,
+               nrow = 320, 
+               ncol = 17)
+  
+  output_list[[j]] = df
+}
+
+fun_fun(dat_array = t1, iteration.num =3)
+
+for(i in 1:n.iter){
+  output_list[i] <- fun_fun(dat_array = t1, 
+                            iteration.num = i)
+}
+
+AUC_JAGS(mod_GOF = mod_GOF,
+         iteration.num = 11,
+         resp = resp)
+
+iteration.num <- length(mod_GOF$sims.list$p[,1])
+
+mod1_AUC <- rep(NA, iteration.num)
+
+for(i in 1:iteration.num){
+  mod1_AUC[i] <- AUC_JAGS(mod_GOF, 
+                          iteration.num = i, 
+                          resp = resp)
+}
+
+
+as.data.frame(mod1_AUC) %>%
+  ggplot() +
+  geom_histogram(aes(x = mod1_AUC))
 
