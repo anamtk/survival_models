@@ -30,7 +30,11 @@ model{
     # probability "p"
     y[i] ~ dbern(p[i])
     
-    logit(p[i]) <-  #set of covariates on probability
+    #to convert to daily survival. 
+    #accounts for different 'exposure times'
+    p[i] <- ps[i]^t[i]
+    
+    logit(ps[i]) <-  #set of covariates on probability
       # centering to fix identifiability issues
       b0.transect[Transect.num[i]] + #this encapsulates nests on a transect
       #Crossed random effect of year:
@@ -47,20 +51,20 @@ model{
       b[4]*cosOrientation[i] +
       b[5]*InitDay[i]+
       #local continuouse covariates
-      b[5]*Trees50[i] +
-      b[6]*Trees2550[i] +
-      b[7]*PercPonderosa[i] +
+      b[6]*Trees50[i] +
+      b[7]*Trees2550[i] +
+      b[8]*PercPonderosa[i] +
       #Climate covariates
-      b[8]*Tmax[i] +
-      b[9]*Tmax[i]^2 +
-      b[10]*PPT[i] +
-      b[11]*PPT[i]^2 +
+      b[9]*Tmax[i] +
+      b[10]*Tmax[i]^2 +
+      b[11]*PPT[i] +
+      b[12]*PPT[i]^2 +
       #landscape continuous covariates
-      b[12]*ForestCV[i] +
-      b[13]*Contag[i] +
-      b[14]*OpenNm[i] +
-      b[15]*LandHa[i] +
-      b[16]*LandBu[i] 
+      b[13]*ForestCV[i] +
+      b[14]*Contag[i] +
+      b[15]*OpenNm[i] +
+      b[16]*LandHa[i] +
+      b[17]*LandBu[i] 
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###
@@ -119,7 +123,7 @@ model{
   b0 ~ dnorm(0, 1E-2)
   #for low # of levels, from Gellman paper - define sigma
   # as uniform and then precision in relation to this sigma
-  sig.transect ~ dunif(0, 10)
+  sig.transect ~ dunif(0, 50)
   sig.year ~ dunif(0, 10)
   
   tau.transect <- 1/pow(sig.transect,2)
@@ -139,7 +143,7 @@ model{
   }
   b2SpeciesID[1] <- 0
   
-  for(i in 3:16){
+  for(i in 3:17){
     b[i] ~ dnorm(0, 1E-2)
   }
   
