@@ -137,7 +137,11 @@ for(i in 1:n.iter){
 
 
 # AUC ---------------------------------------------------------------------
-
+arr <- array()
+dfs <- lapply(1:nlayers(arr), function(x)){
+  return(as.data.frame(arr[,,x]))
+}
+df <- do.call(rbind, dfs)
 
 resp <- as.vector(y$Fate_class)
 
