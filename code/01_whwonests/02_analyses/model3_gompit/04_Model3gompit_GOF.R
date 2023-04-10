@@ -17,7 +17,8 @@
 package.list <- c("here", "tidyverse", 
                   "coda", "bayesplot",
                   "jagsUI",
-                  "reshape2", "BayesPostEst")
+                  "reshape2", "BayesPostEst",
+                  "pROC")
 
 
 ## Installing them if they aren't already on the computer
@@ -161,8 +162,12 @@ for(i in 1:iteration.num){
                           resp = resp)
 }
 
+ as.data.frame(mod3gomp_AUC) %>%
+   summarise(mean = mean(mod3gomp_AUC))
 
-as.data.frame(mod3gomp_AUC) %>%
+mod3g_AUC_plot <- as.data.frame(mod3gomp_AUC) %>%
   ggplot() +
-  geom_histogram(aes(x = mod3gomp_AUC))
+  geom_histogram(aes(x = mod3gomp_AUC)) +
+  geom_vline(xintercept = 0.63, linetype = 2) +
+  labs(title = "Custom probability, cloglog link")
 

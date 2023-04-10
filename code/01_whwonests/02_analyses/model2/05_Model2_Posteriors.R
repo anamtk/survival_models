@@ -1,9 +1,9 @@
 # Model covariate results
 # Ana Miller-ter Kuile
-# March 24, 2022
+# April 10, 2023
 
 # this script generates posterior distributions
-# for the best-fitting survival model
+# for the survival model with interval-specific data
 
 
 # Load packages -----------------------------------------------------------
@@ -11,10 +11,6 @@
 
 # Load packages, here and tidyverse for coding ease, 
 package.list <- c("here", "tidyverse", 
-                  'coda', #get posterior MCMC outputs
-                  "bayesplot", #plot bayesian stuff
-                  "tidybayes",#more bayesian plotting stuff
-                  "mcmcplots", #posterior graphing
                   "patchwork")
 
 
@@ -36,88 +32,61 @@ source(here::here("code",
 
 # Load data ---------------------------------------------------------------
 
-model_s <- readRDS(here("monsoon",
-                        "9_29_22",
-                        "survival",
-                        "outputs",
-                        "survival_mcmc_9_29.RDS"))
+model2_sum <- readRDS(here("monsoon",
+                           "01_whwonests",
+                           "model2",
+                           "outputs",
+                           "model2_posterior_summary.RDS"))
 
 
-data_s <- read.csv(here("data_outputs",
-                      "01_cleaning",
-                      "03_nest_survival",
-                      "Nest_survival_data.csv"))
+# Posterior median and CI of all parameters -------------------------------
 
+parms <- c("b[3]", "b[4]", "b[5]",
+           "b[6]", "b[7]","b[8]",            
+           "b[9]", "b[10]", "b[11]",          
+           "b[12]", "b[13]", "b[14]",           
+           "b[15]", "b[16]", "b[17]",           
+           "b1TreatmentID[2]","b1TreatmentID[3]",
+           "b1TreatmentID[4]", "b2SpeciesID[2]",  
+           "b2SpeciesID[3]","b2SpeciesID[4]","b2SpeciesID[5]")
 
+# "U", "B", "H", "HB"
+#"PIPO", "Abies", "POTR5", "JUOC", "PSME"
 
-data_s <- data_s %>%
-  #some zero-day surveys that need to be deleted
-  mutate(Julian_end = case_when(Julian_end == Julian_start ~ NA_integer_,
-                                TRUE ~ Julian_end)) %>%
-  filter(!is.na(Julian_end)) %>%
-  #filter out multiple fledgling obs per nest
-  filter(!(Stage == "F" & No_eggs == 999)) %>%
-  group_by(Nest_ID) %>%
-  #give a visit interval
-  mutate(interval = 0:(n() - 1)) %>%
-  mutate(prevStage = lag(Stage)) %>%
-  ungroup() %>%
-  #remove first survey
-  filter(interval != 0) %>%  #1363
-  filter(prevStage != "F") %>%
-  #make incubating and laying one stage
-  mutate(prevStage = case_when(prevStage == "E" ~ "Ex",
-                               prevStage %in% c("I", "L") ~ "Eg",
-                               prevStage == "N" ~ "Ne",
-                               TRUE ~ NA_character_)) %>%
-  filter(!prevStage == "Ex")
+mod1_est <- as.data.frame(model1_sum$quantiles) %>%
+  rownames_to_column(var = "parameter") %>%
+  filter(parameter %in% parms) %>%
+  mutate(parameter = case_when(parameter == 'b1TreatmentID[2]' ~ 
+                                 'TreatmentType:Burn',
+                               parameter == "b1TreatmentID[3]" ~
+                                 "TreatmentType:Harvest",
+                               parameter == "b1TreatmentID[4]" ~
+                                 "TreatmentType:Harvest+Burn",
+                               parameter == "b2SpeciesID[2]" ~
+                                 "NestTree:Abies",
+                               parameter == "b2SpeciesID[3]" ~
+                                 "NestTree:Aspen",
+                               parameter == "b2SpeciesID[4]" ~
+                                 "NestTree:Juniper",
+                               parameter == "b2SpeciesID[5]" ~
+                                 "NestTree:DougFir",
+                               parameter == "b[3]" ~ "NestHt",
+                               parameter == "b[4]" ~ "NestOrientation",
+                               parameter == "b[5]" ~ "InitDay",
+                               parameter == "b[6]" ~ "LgTreeDens",
+                               parameter == "b[7]" ~ "SmTreeDens",
+                               parameter == "b[8]" ~ "PercPonderosa",
+                               parameter == "b[9]" ~ "Tmax",
+                               parameter == "b[10]" ~ "Tmax^2",
+                               parameter == "b[11]" ~ "PPT",
+                               parameter == "b[12]" ~ "PPT^2",
+                               parameter == "b[13]" ~ "ForestCV",
+                               parameter == "b[14]" ~ "Contagion",
+                               parameter == "b[15]" ~ "NumOpenPatch",
+                               parameter == "b[16]" ~ "PercHarvest",
+                               parameter == "b[17]" ~ "PercBurn",
+                               TRUE ~ parameter))
 
-
-# Check p-values ----------------------------------------------------------
-
-
-model_s$mean$zi
-#nestheight (b[6])
-#large trees b[9]
-#precip b[13]
-# forest cv b[14]
-model_s$mean$zi.b1
-#egg and nestling survival different
-model_s$mean$zi.b2
-model_s$mean$zi.b3
-model_s$mean$zi.b4
-
-
-# Medians and credible intervals for important variables ------------------
-#nest heigth
-model_s$q50$b[6]
-model_s$q2.5$b[6]
-model_s$q97.5$b[6]
-
-#nest stage
-model_s$q50$b1StageID
-model_s$q2.5$b1StageID
-model_s$q97.5$b1StageID
-
-#large trees
-model_s$q50$b[9]
-model_s$q2.5$b[9]
-model_s$q97.5$b[9]
-
-#forest cv
-model_s$q50$b[14]
-model_s$q2.5$b[14]
-model_s$q97.5$b[14]
-
-#ppt
-model_s$q50$b[13]
-model_s$q2.5$b[13]
-model_s$q97.5$b[13]
-
-#overall intercept value
-plogis(model_s$q50$b0)
-plogis(model_s$q2.5$b0)
-plogis(model_s$q97.5$b0)
 
 
 # Sources of variation ----------------------------------------------------

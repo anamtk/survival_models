@@ -185,8 +185,12 @@ for(i in 1:iteration.num){
                            resp = resp$resp)
 }
 
-
 as.data.frame(mod2_AUC) %>%
+  summarise(mean = mean(mod2_AUC))
+
+mod2_AUC_plot <- as.data.frame(mod2_AUC) %>%
   ggplot() +
-  geom_histogram(aes(x = mod2_AUC))
+  geom_histogram(aes(x = mod2_AUC)) +
+  geom_vline(xintercept = 0.54, linetype = 2) +
+  labs(title = "Interval-level response, logit link")
 
