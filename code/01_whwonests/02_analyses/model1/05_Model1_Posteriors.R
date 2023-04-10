@@ -85,10 +85,13 @@ mod1_est <- as.data.frame(model1_sum$quantiles) %>%
                                parameter == "b[15]" ~ "NumOpenPatch",
                                parameter == "b[16]" ~ "PercHarvest",
                                parameter == "b[17]" ~ "PercBurn",
-                               TRUE ~ parameter))
+                               TRUE ~ parameter)) %>%
+  mutate(Model = "Model1_TotalExposure")
   
 
-
+write.csv(mod1_est, here("data_outputs",
+               "04_posterior_summaries",
+               "Model1_posteriors.csv"))
 # Sources of variation ----------------------------------------------------
 
 model_s$q50$sig.nest
