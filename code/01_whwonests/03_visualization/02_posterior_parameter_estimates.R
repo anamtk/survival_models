@@ -84,7 +84,7 @@ post <- post %>%
                          TRUE ~ "notsig"))
 
 post %>%
-  filter(Model != "Model3_CustomProbCloglog") %>%
+  #filter(Model != "Model3_CustomProbCloglog") %>%
   ggplot() +
   geom_pointrange(aes(x = parameter, 
                       y= X50., 
@@ -95,4 +95,5 @@ post %>%
                   position = position_dodge2(width = 1)) +
   coord_flip() +
   scale_color_manual(values = c("black", "#af8dc3")) +
-  facet_grid(group~., scales = "free")
+  facet_grid(group~., scales = "free") +
+  theme_bw()
