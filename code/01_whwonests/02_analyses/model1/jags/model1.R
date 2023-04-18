@@ -46,25 +46,26 @@ model{
       #nest categorical covariate
       b2SpeciesID[SpeciesID[i]] +
       #continuous covariates
+      b3StageID[StageID[i]] +
       #Nest continuouse covariates
-      b[3]*NestHt[i]+
-      b[4]*cosOrientation[i] +
-      b[5]*InitDay[i]+
+      b[4]*NestHt[i]+
+      b[5]*cosOrientation[i] +
+      b[6]*InitDay[i]+
       #local continuouse covariates
-      b[6]*Trees50[i] +
-      b[7]*Trees2550[i] +
-      b[8]*PercPonderosa[i] +
+      b[7]*Trees50[i] +
+      b[8]*Trees2550[i] +
+      b[9]*PercPonderosa[i] +
       #Climate covariates
-      b[9]*Tmax[i] +
-      b[10]*Tmax[i]^2 +
-      b[11]*PPT[i] +
-      b[12]*PPT[i]^2 +
+      b[10]*Tmax[i] +
+      b[11]*Tmax[i]^2 +
+      b[12]*PPT[i] +
+      b[13]*PPT[i]^2 +
       #landscape continuous covariates
-      b[13]*ForestCV[i] +
-      b[14]*Contag[i] +
-      b[15]*OpenNm[i] +
-      b[16]*LandHa[i] +
-      b[17]*LandBu[i] 
+      b[14]*ForestCV[i] +
+      b[15]*Contag[i] +
+      b[16]*OpenNm[i] +
+      b[17]*LandHa[i] +
+      b[18]*LandBu[i] 
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###
@@ -143,7 +144,12 @@ model{
   }
   b2SpeciesID[1] <- 0
   
-  for(i in 3:17){
+  for(s in 2:n.stages){
+    b3StageID[s] ~ dnorm(0, 1E-2)
+  }
+  b3StageID[1] <- 0
+  
+  for(i in 4:18){
     b[i] ~ dnorm(0, 1E-2)
   }
   

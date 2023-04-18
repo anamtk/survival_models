@@ -51,7 +51,7 @@ model{
     
     #these data are bernoulli distributed
     #around total nesting period survival
-    y[i] ~ dbern(p_1[i])
+    y[i] ~ dbern(p1[i])
     
     #This overall nesting period survival probability 
     #is dependent on surviving a series of previous
@@ -59,43 +59,20 @@ model{
     # looping through the nests that had one survey
     # interval
     
-    #If the nest didn't survive from first interval
-    #to second, it's survival probability is just 
-    #survival probability of that interval
-    #y = 0, n.interval = 1
+    #regardless of final fate (1-0), the probability of
+    #surviving just one interval is just the probability
+    #of survivng that interval
     p1[i] <-  p.int[i,1]
-    
-    #If the nest did survive the first interval
-    #it's survival probability is the survival
-    # probability of all the intervals it was in
-    # (in this loop it will just be 1 interval)
-    #y = 1
-    p2[i] <-  prod(p.int[i, 1:n.t[i]])
-    
-    #total nest survival is based on 
-    #the sort of "if-else" of the above
-    #two conditions
-    #if a condition isn't met, that value will
-    #equal zero and that half of the + will add 0
-    #to the overall probability
-    p_1[i] <-  (y2[i] == 0)*(n.t[i]==1)*p1[i] +
-      (y2[i]==1)*p2[i]
-    
-    #this section is maybe a bit overly complicated
-    # for single-interval nests because the 
-    # probability is the same eitehr way - could 
-    # simplify this section, but good to see all the 
-    # "work" of why
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###
     #-------------------------------------##
     # 
     #Create replicated data for gof
-    yrep_1[i] ~ dbern(p_1[i])
+    yrep_1[i] ~ dbern(p1[i])
     # 
     # #Residuals
-    resid_1[i] <- y[i] - p_1[i]
+    resid_1[i] <- y[i] - p1[i]
     # 
     
   } #single survey nests
@@ -105,7 +82,7 @@ model{
     
     #these data are bernoulli distributed
     #around total nesting period survival
-    y[i] ~ dbern(p_2[i])
+    y[i] ~ dbern(p2[i])
     
     #This overall nesting period survival probability 
     #is dependent on surviving a series of previous
@@ -113,17 +90,11 @@ model{
     # looping through the nests that had more than
     # one survey interval
     
-    #If the nest didn't survive from first interval
-    #to second, it's survival probability is just 
-    #survival probability of that interval
-    #y = 0, n.interval = 1
-    p1.1[i] <-  p.int[i,1]
-    
-    #If the nest did survive all intervales, it's
+    #If the nest did survive a set of intervals, it's
     # survival probability is the product of all
     # those intervals
     #y = 1
-    p2.1[i] <- prod(p.int[i, 1:n.t[i]])
+    p_2[i] <- prod(p.int[i, 1:n.t[i]])
     
     #IF the nest did not survive at the end and was 
     # surveyed for more than one interal, it's survival
@@ -131,31 +102,31 @@ model{
     # minus the "mortality probability (1-survival) for
     # the last interval
     #y = 0, n.interval > 1
-    p3[i] <-  1 - prod(p.int[i, 1:(n.t[i]-1)]) *
+    p_3[i] <-  1 - prod(p.int[i, 1:(n.t[i]-1)]) *
       (1 - p.int[i, n.t[i]])
     
     #total nest survival is based on 
     #the "if-else" of the above
-    #three conditions
+    #two conditions
     #if a condition isn't met, that part
     # will become zero added to the other probabilities
     
     #only one interval and died, p1
-    p_2[i] <- (y2[i] == 0)*(n.t[i]==1)*p1.1[i] +
-      #lived through all intervals, p2
-      (y2[i]==1)*p2.1[i] +
+    p_2[i] <- 
+      #lived through all intervals, p_2
+      (y2[i]==1)*p_2[i] +
       #died in an interval after the first one , p3
-      (y2[i] == 0)*(n.t[i]>1)*p3[i]
+      (y2[i] == 0)*p3[i]
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###
     #-------------------------------------##
     # 
     #Create replicated data for gof
-    yrep_2[i] ~ dbern(p_2[i])
+    yrep_2[i] ~ dbern(p2[i])
     # 
     # #Residuals
-    resid_2[i] <- y[i] - p_2[i]
+    resid_2[i] <- y[i] - p2[i]
     # 
     
   } #multi-survey nests
@@ -174,7 +145,7 @@ model{
       logit(ps[i,j]) <- 
         #hierarchically centered random intercept for
         # nest within transect
-        b0.nest[Nest.num[i]] + 
+        b0.transect[Transect.num[i]] + 
         #summed to zero random intercept for survey year
         b0.year[Year.num[i]] +
         #category of the stage the nest was in in 
@@ -254,11 +225,6 @@ model{
   # Hierarchical spatial random effects
   #each level depends on the level higher than it
   #Nested spatial random structure with hierarchical centering: 
-  for(n in 1:tot.nests){ #nests
-    #nests in points effect
-    b0.nest[n] ~ dnorm(b0.transect[Transect.num[n]], tau.nest)
-  } 
-  
   for(t in 1:n.transects){
     b0.transect[t] ~ dnorm(b0, tau.transect)
   }
@@ -283,9 +249,6 @@ model{
   
   tau.transect <- 1/pow(sig.transect,2)
   tau.year <- 1/pow(sig.year, 2)
-  
-  tau.nest ~ dgamma(0.1, 0.1)
-  sig.nest <- 1/sqrt(tau.nest)
   
   #FIXED COVARIATE PRIORS
   #Categorical variables
