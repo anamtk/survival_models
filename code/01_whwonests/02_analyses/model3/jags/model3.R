@@ -112,11 +112,11 @@ model{
     # will become zero added to the other probabilities
     
     #only one interval and died, p1
-    p_2[i] <- 
+    p2[i] <- 
       #lived through all intervals, p_2
       (y2[i]==1)*p_2[i] +
       #died in an interval after the first one , p3
-      (y2[i] == 0)*p3[i]
+      (y2[i] == 0)*p_3[i]
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###

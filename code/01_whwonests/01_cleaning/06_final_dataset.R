@@ -133,6 +133,11 @@ t <- nests_int2 %>%
   #select these to join below
   distinct(Nest_ID, exposure)
 
+stage <- nests_int2 %>%
+  group_by(Nest_ID) %>%
+  filter(interval == max(interval, na.rm = T)) %>%
+  dplyr::select(Nest_ID, prevStage)
+
 #get by nest values
 nests_full <- nests_int2 %>%
   group_by(Nest_ID, Fate_cat, Year_located, Project_ID, Transect_ID2,
@@ -144,7 +149,8 @@ nests_full <- nests_int2 %>%
          maxPpt_mm = max(maxPpt_mm, na.rm = T),
          meanPpt_mm = mean(meanPpt_mm, na.rm = T)) %>%
   ungroup() %>%
-  left_join(t, by = "Nest_ID")
+  left_join(t, by = "Nest_ID") %>%
+  left_join(stage, by = "Nest_ID")
 
 write.csv(nests_full, here("data_outputs",
                            "02_analysis_ready",

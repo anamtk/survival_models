@@ -33,13 +33,10 @@ data <- readRDS(here("data_outputs",
 
 params <- c(
             #Random covariate betas
-            'b0.nest',
             'b0.transect',
             'b0.year',
             'b0',
             #Variance/precision
-            'sig.nest',
-            'tau.nest',
             'sig.transect',
             'sig.year',
             'b',
@@ -67,15 +64,14 @@ mod <- jagsUI::jags(data = data,
                             parameters.to.save = params,
                             parallel = TRUE,
                             n.chains = 3,
-                            n.iter = 77000,
-                            n.burnin = 1000,
+                            n.iter = 4000,
                             DIC = TRUE)
 Sys.time()
-saveRDS(mod, here("monsoon",
-                  "01_whwonests",
-                  "model3",
-                  "outputs",
-                  "model3_JAGS_model.RDS"))
+# saveRDS(mod, here("monsoon",
+#                   "01_whwonests",
+#                   "model3",
+#                   "outputs",
+#                   "model3_JAGS_model.RDS"))
 mcmcplot(mod$samples)
 
 # Raftery -----------------------------------------------------------------
@@ -114,7 +110,7 @@ raf_all %>%
 # A tibble: 1 × 3
 # iterations_90 iterations_95    max
 # <dbl>         <dbl>  <dbl>
-#   1         7339.         9634. 53885.
+#   1          6552          8344 91025
 
 bu1 <- raf[[1]]$resmatrix[,1]
 bu2 <- raf[[2]]$resmatrix[,1]
@@ -140,8 +136,6 @@ burn %>%
 # 
 b0.transect <- mod$mean$b0.transect
 sig.transect <- mod$mean$sig.transect
-b0.nest <- mod$mean$b0.nest
-tau.nest <- mod$mean$tau.nest
 b0.year <- c(mod$mean$b0.year[1:9], NA)
 sig.year <- mod$mean$sig.year
 b0 <- mod$mean$b0
@@ -156,8 +150,6 @@ inits <- list(list(b0.transect = b0.transect,
                    sig.transect = sig.transect,
                    b0.year = b0.year,
                    sig.year = sig.year,
-                   b0.nest = b0.nest,
-                   tau.nest = tau.nest,
                    b0 = b0,
                    b2TreatmentID = b2TreatmentID,
                    b1StageID = b1StageID,
@@ -167,8 +159,6 @@ inits <- list(list(b0.transect = b0.transect,
                    sig.transect = sig.transect +runif(length(sig.transect)),
                    b0.year = b0.year + runif(length(b0.year)),
                    sig.year = sig.year + runif(length(sig.year)),
-                   b0.nest = b0.nest + runif(length(b0.nest)),
-                   tau.nest = tau.nest + runif(length(tau.nest)),
                    b0 = b0 + runif(length(b0)),
                    b2TreatmentID =  b2TreatmentID +runif(length(b2TreatmentID)),
                    b1StageID = b1StageID +runif(length(b1StageID)),
@@ -178,8 +168,6 @@ inits <- list(list(b0.transect = b0.transect,
                    sig.transect = sig.transect +runif(length(sig.transect)),
                    b0.year = b0.year - runif(length(b0.year)),
                    sig.year = sig.year + runif(length(sig.year)),
-                   b0.nest = b0.nest - runif(length(b0.nest)),
-                   tau.nest = tau.nest + runif(length(tau.nest)),
                    b0 = b0 - runif(length(b0)),
                    b2TreatmentID =  b2TreatmentID -runif(length(b2TreatmentID)),
                    b1StageID = b1StageID -runif(length(b1StageID)),

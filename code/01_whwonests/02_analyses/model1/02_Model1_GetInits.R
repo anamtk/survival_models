@@ -44,7 +44,8 @@ params <- c(
             'sig.year',
             'b',
             'b1TreatmentID',
-            'b2SpeciesID'
+            'b2SpeciesID',
+            'b3StageID'
             )
 
 
@@ -53,11 +54,11 @@ params <- c(
 model <- here("code", 
               "01_whwonests",
               "02_analyses",
-              "01_total_survey",
+              "model1",
               "jags",
               "model1.R")
 
-jags <- jagsUI::jags(data = data,
+mod <- jagsUI::jags(data = data,
                             inits = NULL,
                             model.file = model,
                             parameters.to.save = params,
@@ -66,11 +67,11 @@ jags <- jagsUI::jags(data = data,
                             n.iter = 4000,
                             DIC = TRUE)
 
-mcmcplot(jags$samples)
+mcmcplot(mod$samples)
 
 # Raftery -----------------------------------------------------------------
 
-raf <- raftery.diag(jags$samples)
+raf <- raftery.diag(mod$samples)
 
 names <- rownames(raf[[1]]$resmatrix)
 ch1 <- raf[[1]]$resmatrix[,2]
@@ -101,10 +102,10 @@ raf_all %>%
                                      na.rm = T)/3,
             max = max(iterations, 
                       na.rm = T)/3)
-# A tibble: 1 x 3
-# iterations_90 iterations_95    max
-# <dbl>         <dbl>  <dbl>
-#   1        19389.        25205. 49789.
+# A tibble: 1 × 3
+# iterations_90 iterations_95   max
+# <dbl>         <dbl> <dbl>
+#   1          8738        12607. 67012
 
 bu1 <- raf[[1]]$resmatrix[,1]
 bu2 <- raf[[2]]$resmatrix[,1]
@@ -128,14 +129,15 @@ burn %>%
 # 
 # # Initials ----------------------------------------------------------------
 # 
-b0.transect <- jags$mean$b0.transect
-sig.transect <- jags$mean$sig.transect
-b0.year <- c(jags$mean$b0.year[1:9], NA)
-sig.year <- jags$mean$sig.year
-b0 <- jags$mean$b0
-b1TreatmentID <- c(NA, jags$mean$b1TreatmentID[2:length(jags$mean$b1TreatmentID)])
-b2SpeciesID <- c(NA, jags$mean$b2SpeciesID[2:length(jags$mean$b2SpeciesID)])
-b <- jags$mean$b
+b0.transect <- mod$mean$b0.transect
+sig.transect <- mod$mean$sig.transect
+b0.year <- c(mod$mean$b0.year[1:9], NA)
+sig.year <- mod$mean$sig.year
+b0 <- mod$mean$b0
+b1TreatmentID <- c(NA, mod$mean$b1TreatmentID[2:length(mod$mean$b1TreatmentID)])
+b2SpeciesID <- c(NA, mod$mean$b2SpeciesID[2:length(mod$mean$b2SpeciesID)])
+b3StageID <- c(NA, mod$mean$b3StageID[2:length(mod$mean$b3StageID)])
+b <- mod$mean$b
 
 # # Set initials ------------------------------------------------------------
 
@@ -146,22 +148,25 @@ inits <- list(list(b0.transect = b0.transect,
                    b0 = b0,
                    b1TreatmentID = b1TreatmentID,
                    b2SpeciesID = b2SpeciesID,
+                   b3StageID = b3StageID,
                    b = b),
               list(b0.transect = b0.transect +runif(length(b0.transect), min = 0, max = 1),
                    sig.transect = sig.transect +runif(length(sig.transect), min = 0, max = 1),
                    b0.year = b0.year + runif(length(b0.year), min = 0, max = 1),
                    sig.year = sig.year + runif(length(sig.year), min = 0, max = 1),
                    b0 = b0 + runif(length(b0), min = 0, max = 1),
-                   b2TreatmentID =  b1TreatmentID +runif(length(b1TreatmentID), min = 0, max = 1),
-                   b4SpeciesID = b2SpeciesID + runif(length(b2SpeciesID), min = 0, max = 1),
+                   b1TreatmentID =  b1TreatmentID +runif(length(b1TreatmentID), min = 0, max = 1),
+                   b2SpeciesID = b2SpeciesID + runif(length(b2SpeciesID), min = 0, max = 1),
+                   b3StageID = b3StageID + runif(length(b3StageID), min = 0, max = 1),
                    b = b + runif(length(b), min = 0, max = 1)),
               list(b0.transect = b0.transect -runif(length(b0.transect), min = 0, max = 1),
                    sig.transect = sig.transect +runif(length(sig.transect), min = 0, max = 1),
                    b0.year = b0.year - runif(length(b0.year), min = 0, max = 1),
                    sig.year = sig.year + runif(length(sig.year), min = 0, max = 1),
                    b0 = b0 - runif(length(b0), min = 0, max = 1),
-                   b2TreatmentID =  b1TreatmentID -runif(length(b1TreatmentID), min = 0, max = 1),
-                   b4SpeciesID = b2SpeciesID - runif(length(b2SpeciesID), min = 0, max = 1),
+                   b1TreatmentID =  b1TreatmentID -runif(length(b1TreatmentID), min = 0, max = 1),
+                   b2SpeciesID = b2SpeciesID - runif(length(b2SpeciesID), min = 0, max = 1),
+                   b3StageID = b3StageID - runif(length(b3StageID), min = 0, max = 1),
                    b = b - runif(length(b), min = 0, max = 1)))
 
 # 

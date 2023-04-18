@@ -33,7 +33,6 @@ data <- readRDS(here("data_outputs",
 
 params <- c(
             #Random covariate betas
-            'b0.nest',
             'b0.transect',
             'b0.year',
             'b0',
@@ -53,7 +52,7 @@ params <- c(
 model <- here("code", 
               "01_whwonests",
               "02_analyses",
-              "02_interval_data",
+              "model2",
               "jags",
               "model2.R")
 
@@ -103,9 +102,9 @@ raf_all %>%
             max = max(iterations, 
                       na.rm = T)/3)
 # A tibble: 1 × 3
-# iterations_90 iterations_95    max
-# <dbl>         <dbl>  <dbl>
-#   1         9000.        12435. 45632.
+# iterations_90 iterations_95     max
+# <dbl>         <dbl>   <dbl>
+#   1         9398.        14306. 110171.
 
 bu1 <- raf[[1]]$resmatrix[,1]
 bu2 <- raf[[2]]$resmatrix[,1]
@@ -131,8 +130,6 @@ burn %>%
 # 
  b0.transect <- jags$mean$b0.transect
  sig.transect <- jags$mean$sig.transect
- b0.nest <- jags$mean$b0.nest
- tau.nest <- 1/(jags$mean$sig.nest^2)
  b0.year <- c(jags$mean$b0.year[1:9], NA)
  sig.year <- jags$mean$sig.year
  b0 <- jags$mean$b0
@@ -147,8 +144,6 @@ inits <- list(list(b0.transect = b0.transect,
                    sig.transect = sig.transect,
                    b0.year = b0.year,
                    sig.year = sig.year,
-                   b0.nest = b0.nest,
-                   tau.nest = tau.nest,
                    b0 = b0,
                    b1StageID = b1StageID,
                    b2TreatmentID = b2TreatmentID,
@@ -158,8 +153,6 @@ inits <- list(list(b0.transect = b0.transect,
                    sig.transect = sig.transect +runif(length(sig.transect)),
                    b0.year = b0.year + runif(length(b0.year)),
                    sig.year = sig.year + runif(length(sig.year)),
-                   b0.nest = b0.nest + runif(length(b0.nest)),
-                   tau.nest = tau.nest + runif(length(tau.nest)),
                    b0 = b0 + runif(length(b0)),
                    b2TreatmentID =  b2TreatmentID +runif(length(b2TreatmentID)),
                    b1StageID = b1StageID +runif(length(b1StageID)),
@@ -169,8 +162,6 @@ inits <- list(list(b0.transect = b0.transect,
                    sig.transect = sig.transect +runif(length(sig.transect)),
                    b0.year = b0.year - runif(length(b0.year)),
                    sig.year = sig.year + runif(length(sig.year)),
-                   b0.nest = b0.nest - runif(length(b0.nest)),
-                   tau.nest = tau.nest + runif(length(tau.nest)),
                    b0 = b0 - runif(length(b0)),
                    b2TreatmentID =  b2TreatmentID -runif(length(b2TreatmentID)),
                    b1StageID = b1StageID -runif(length(b1StageID)),

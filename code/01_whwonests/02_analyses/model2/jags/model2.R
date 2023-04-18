@@ -107,7 +107,7 @@ model {
     #to compare AUC across the board - just take the 
     #yrep and p from the final interval for each nest
     y.repkeep[i] <- yrep[i, n.t[i]]
-    p.intkeep[i] <- p[i, n.t[i]]
+    p.intkeep[i] <- p.int[i, n.t[i]]
     
     #-------------------------------------## 
     # Imputing missing data ###

@@ -46,7 +46,7 @@ model{
       #nest categorical covariate
       b2SpeciesID[SpeciesID[i]] +
       #continuous covariates
-      b3StageID[StageID[i]] +
+      b3StageID[Stage[i]] +
       #Nest continuouse covariates
       b[4]*NestHt[i]+
       b[5]*cosOrientation[i] +

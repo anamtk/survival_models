@@ -104,7 +104,7 @@ Forest.num <- nums(Forest)
 #select all covariates on nest survival
 nest_covs <- nests %>%
   dplyr::select(Nest_ID, Nest_Ht, 
-           Tree_sp, cosOrientation, Init_day, Trt_cat,
+           Tree_sp, cosOrientation, Init_day, Trt_cat, prevStage,
            Trees_2550, Trees_50, pPIPO,
            a1000_areacv2, a1000_contag, a1000_np1, a1000_Ha, a1000_RxBu,
            meanTmax_C, meanPpt_mm) %>% 
@@ -143,6 +143,20 @@ n.species <- length(unique(as.factor(SpeciesID)))
 #3 = POTR5
 #4 = JUOC
 #5 = PSME
+
+nests %>%
+  group_by(prevStage) %>%
+  tally()
+
+Stage <- nests %>%
+  mutate(StageID = case_when(prevStage == "N" ~ 1,
+                             prevStage %in% c("I", "L") ~ 2,
+                             TRUE ~ NA_real_)) %>%
+  dplyr::select(StageID) %>%
+  as_vector() %>%
+  nums()
+
+n.stages <- 2
 
 InitDay <- as.vector(nest_covs$Init_day)
 cosOrientation <- as.vector(nest_covs$cosOrientation) 
@@ -184,6 +198,7 @@ all_data <- list(#Data count variables
                  n.trt = n.trt, 
                  n.species = n.species,
                  n.forests = n.forests,
+                 n.stages = n.stages,
                  #Random effects IDs
                  Nest.num = Nest.num,
                  Year.num = Year.num,
@@ -196,6 +211,7 @@ all_data <- list(#Data count variables
                  cosOrientation = cosOrientation,
                  InitDay = InitDay, 
                  SpeciesID = SpeciesID, 
+                 Stage = Stage,
                  #Local-level covariates
                  Trees50 = Trees50,
                  Trees2550 = Trees2550, 
