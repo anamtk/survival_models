@@ -71,12 +71,10 @@ data_list <- list(#overall values for likelihood loops
 # Parameters to save ------------------------------------------------------
 params <- c(
             #Random covariate betas
-            'b0.nest',
             'b0.transect',
             'b0.year',
             'b0',
             #Variance/precision
-            'sig.nest',
             'sig.transect',
             'sig.year',
             'b',
@@ -99,7 +97,7 @@ mod <- jagsUI::jags(data = data_list,
                         parallel = TRUE,
                         n.chains = 3,
                         n.burnin = 1000,
-                        n.iter = 47000,
+                        n.iter = 111000,
                         DIC = TRUE)
 
 #save as an R data object

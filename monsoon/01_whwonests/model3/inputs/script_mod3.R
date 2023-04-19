@@ -74,13 +74,10 @@ data_list <- list(#overall values for likelihood loops
 # Parameters to save ------------------------------------------------------
 params <- c(
             #Random covariate betas
-            'b0.nest',
             'b0.transect',
             'b0.year',
             'b0',
             #Variance/precision
-            'sig.nest',
-            'tau.nest',
             'sig.transect',
             'sig.year',
             'b',
@@ -91,7 +88,7 @@ params <- c(
 
 # INits -------------------------------------------------------------------
 
-#inits <- readRDS("/scratch/atm234/survival_models/model3/inputs/model3_inits.RDS")
+inits <- readRDS("/scratch/atm234/survival_models/model3/inputs/model3_inits.RDS")
 
 # JAGS model --------------------------------------------------------------
 
@@ -103,7 +100,7 @@ mod <- jagsUI::jags(data = data_list,
                         parallel = TRUE,
                         n.chains = 3,
                         n.burnin = 1000,
-                        n.iter = 77000,
+                        n.iter = 92000,
                         DIC = TRUE)
 
 #save as an R data object

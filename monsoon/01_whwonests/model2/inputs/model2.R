@@ -45,7 +45,7 @@ model {
       #set of covariates on probability
       logit(ps[i, j]) <- #hierarchical structure of intercept with hierarchical
         # centering to fix identifiability issues
-        b0.nest[Nest.num[i]] + #this encapsulates multiple spatial hierarchies
+        b0.transect[Transect.num[i]] + #this encapsulates multiple spatial hierarchies
         #coded into the priors for this - see below
         #Crossed random effect of year:
         b0.year[Year.num[i]] + #this is summed to zero for identifiabilty
@@ -104,6 +104,11 @@ model {
       
     }
     
+    #to compare AUC across the board - just take the 
+    #yrep and p from the final interval for each nest
+    y.repkeep[i] <- yrep[i, n.t[i]]
+    p.intkeep[i] <- p.int[i, n.t[i]]
+    
     #-------------------------------------## 
     # Imputing missing data ###
     #-------------------------------------##
@@ -129,11 +134,6 @@ model {
   # Hierarchical spatial random effects
   #each level depends on the level higher than it
   #Nested spatial random structure with hierarchical centering: 
-  for(n in 1:n.nests){ #nests
-    #nests in points effect
-    b0.nest[n] ~ dnorm(b0.transect[Transect.num[n]], tau.nest)
-  } 
-  
   for(t in 1:n.transects){
     b0.transect[t] ~ dnorm(b0, tau.transect)
   }
@@ -158,9 +158,6 @@ model {
   
   tau.transect <- 1/pow(sig.transect,2)
   tau.year <- 1/pow(sig.year, 2)
-  
-  tau.nest ~ dgamma(0.1, 0.1)
-  sig.nest <- 1/sqrt(tau.nest)
   
   #FIXED COVARIATE PRIORS
   #Categorical variables

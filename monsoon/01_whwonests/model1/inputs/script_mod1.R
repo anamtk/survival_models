@@ -34,6 +34,7 @@ data_list <- list(#overall values for likelihood loops
                   n.trt = data$n.trt, 
                   n.species = data$n.species,
                   n.forests = data$n.forests,
+                  n.stages = data$n.stages,
                   #Random effects IDs
                   Nest.num = data$Nest.num,
                   Year.num = data$Year.num,
@@ -46,6 +47,7 @@ data_list <- list(#overall values for likelihood loops
                   cosOrientation = data$cosOrientation,
                   InitDay = data$InitDay, 
                   SpeciesID = data$SpeciesID, 
+                  Stage = data$Stage,
                   #Local-level covariates
                   Trees50 = data$Trees50,
                   Trees2550 = data$Trees2550, 
@@ -75,7 +77,8 @@ params <- c(
   'sig.year',
   'b',
   'b1TreatmentID',
-  'b2SpeciesID'
+  'b2SpeciesID',
+  'b3StageID'
 )
 
 
@@ -93,7 +96,7 @@ mod <- jagsUI::jags(data = data_list,
                         parallel = TRUE,
                         n.chains = 3,
                         n.burnin = 1000,
-                        n.iter = 51000,
+                        n.iter = 68000,
                         DIC = TRUE)
 
 #save as an R data object
