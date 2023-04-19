@@ -168,6 +168,6 @@ as.data.frame(mod3_AUC) %>%
 (mod3_AUC_plot <- as.data.frame(mod3_AUC) %>%
   ggplot() +
   geom_histogram(aes(x = mod3_AUC)) +
-  geom_vline(xintercept = 0.65, linetype = 2) +
+  geom_vline(xintercept = 0.79, linetype = 2) +
   labs(title = "Custom probability, logit link"))
 

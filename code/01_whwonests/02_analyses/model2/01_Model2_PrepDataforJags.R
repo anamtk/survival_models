@@ -54,7 +54,7 @@ n.t <- nests %>%
 
 
 mean(n.t)
-sd(n.t)/sqrt(318)
+sd(n.t)/sqrt(320)
 max(n.t)
 # Random variables of transect, forest, and year -------------------
 
@@ -283,7 +283,8 @@ y <- nests %>%
   dplyr::select(interval, survival, Nest_ID) %>%
   pivot_wider(names_from = "interval",
               values_from = "survival") %>%
-  column_to_rownames(var = "Nest_ID") 
+  column_to_rownames(var = "Nest_ID") %>%
+  as.matrix()
   
 # Export as RDS -----------------------------------------------------------
 

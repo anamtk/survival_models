@@ -55,7 +55,7 @@ tot.nests <- length(Nests$Nest_ID)
 
 #How many times did each nest get measured
 #(number of intervals)
-n.t <- as_vector(nests1$n.t)
+n.t <- as_vector(Nests$n.t)
 
 # Random variables of transect, forest, and year -------------------
 
