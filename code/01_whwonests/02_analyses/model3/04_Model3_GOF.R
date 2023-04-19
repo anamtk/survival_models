@@ -144,12 +144,12 @@ for(i in 1:n.iter){
 
 resp <- as.vector(data$y)
 
-iteration.num <- length(mod_GOF$sims.list$p_1[,1])
+iteration.num <- length(mod_GOF$sims.list$p1[,1])
 
 #EDITING FUNCTION HERE
 
-pred1 <- as.data.frame(t(mod_GOF$sims.list$p_1))
-pred2 <- as.data.frame(t(mod_GOF$sims.list$p_2))
+pred1 <- as.data.frame(t(mod_GOF$sims.list$p1))
+pred2 <- as.data.frame(t(mod_GOF$sims.list$p2))
 pred2 <- pred2[25:nrow(pred2),]
 
 pred <- rbind(pred1, pred2)
@@ -165,9 +165,9 @@ for(i in 1:iteration.num){
 as.data.frame(mod3_AUC) %>%
   summarise(mean = mean(mod3_AUC))
 
-mod3_AUC_plot <- as.data.frame(mod3_AUC) %>%
+(mod3_AUC_plot <- as.data.frame(mod3_AUC) %>%
   ggplot() +
   geom_histogram(aes(x = mod3_AUC)) +
-  geom_vline(xintercept = 0.59, linetype = 2) +
-  labs(title = "Custom probability, logit link")
+  geom_vline(xintercept = 0.65, linetype = 2) +
+  labs(title = "Custom probability, logit link"))
 

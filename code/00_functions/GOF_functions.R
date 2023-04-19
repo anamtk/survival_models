@@ -70,3 +70,15 @@ AUC_JAGS3 <- function(df, iteration.num, resp){
 }
 
 
+AUC_JAGS4 <- function(mod_GOF, iteration.num, resp){
+  
+  predictor_df <- as.data.frame(t(mod_GOF$sims.list$p.intkeep))
+  
+  p1 <- predictor_df[,iteration.num]
+  
+  ROC <- roc(response =resp, predictor =p1)
+  
+  AUC <- auc(ROC)
+  
+  return(AUC)
+}

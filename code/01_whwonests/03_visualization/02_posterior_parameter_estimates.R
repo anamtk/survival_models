@@ -37,14 +37,14 @@ m3 <- read.csv(here("data_outputs",
                     "04_posterior_summaries",
                     "Model3_posteriors.csv"))
 
-m3g <- read.csv(here("data_outputs",
-                     "04_posterior_summaries",
-                     "Model3gompit_posteriors.csv"))
+# m3g <- read.csv(here("data_outputs",
+#                      "04_posterior_summaries",
+#                      "Model3gompit_posteriors.csv"))
 
 
 # Merge data --------------------------------------------------------------
 
-post <- bind_rows(m1, m2, m3, m3g)
+post <- bind_rows(m1, m2, m3)
 
 
 
@@ -86,6 +86,7 @@ post <- post %>%
 post %>%
   #filter(Model != "Model3_CustomProbCloglog") %>%
   ggplot() +
+  geom_hline(yintercept = 0, linetype = 2) +
   geom_pointrange(aes(x = parameter, 
                       y= X50., 
                       ymin = X2.5.,

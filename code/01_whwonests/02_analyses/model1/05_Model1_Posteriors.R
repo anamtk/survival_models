@@ -41,14 +41,16 @@ model1_sum <- readRDS(here("monsoon",
 
 # Posterior median and CI of all parameters -------------------------------
 
-parms <- c("b[3]", "b[4]", "b[5]",
+parms <- c("b[4]", "b[5]",
            "b[6]", "b[7]","b[8]",            
            "b[9]", "b[10]", "b[11]",          
            "b[12]", "b[13]", "b[14]",           
-           "b[15]", "b[16]", "b[17]",           
+           "b[15]", "b[16]", "b[17]",  
+           'b[18]',
            "b1TreatmentID[2]","b1TreatmentID[3]",
            "b1TreatmentID[4]", "b2SpeciesID[2]",  
-           "b2SpeciesID[3]","b2SpeciesID[4]","b2SpeciesID[5]")
+           "b2SpeciesID[3]","b2SpeciesID[4]","b2SpeciesID[5]",
+           'b3StageID[2]')
 
 # "U", "B", "H", "HB"
 #"PIPO", "Abies", "POTR5", "JUOC", "PSME"
@@ -70,21 +72,23 @@ mod1_est <- as.data.frame(model1_sum$quantiles) %>%
                                  "NestTree:Juniper",
                                parameter == "b2SpeciesID[5]" ~
                                  "NestTree:DougFir",
-                               parameter == "b[3]" ~ "NestHt",
-                               parameter == "b[4]" ~ "NestOrientation",
-                               parameter == "b[5]" ~ "InitDay",
-                               parameter == "b[6]" ~ "LgTreeDens",
-                               parameter == "b[7]" ~ "SmTreeDens",
-                               parameter == "b[8]" ~ "PercPonderosa",
-                               parameter == "b[9]" ~ "Tmax",
-                               parameter == "b[10]" ~ "Tmax^2",
-                               parameter == "b[11]" ~ "PPT",
-                               parameter == "b[12]" ~ "PPT^2",
-                               parameter == "b[13]" ~ "ForestCV",
-                               parameter == "b[14]" ~ "Contagion",
-                               parameter == "b[15]" ~ "NumOpenPatch",
-                               parameter == "b[16]" ~ "PercHarvest",
-                               parameter == "b[17]" ~ "PercBurn",
+                               parameter == "b3StageID[2]" ~
+                                 "Stage:Egg",
+                               parameter == "b[4]" ~ "NestHt",
+                               parameter == "b[5]" ~ "NestOrientation",
+                               parameter == "b[6]" ~ "InitDay",
+                               parameter == "b[7]" ~ "LgTreeDens",
+                               parameter == "b[8]" ~ "SmTreeDens",
+                               parameter == "b[9]" ~ "PercPonderosa",
+                               parameter == "b[10]" ~ "Tmax",
+                               parameter == "b[11]" ~ "Tmax^2",
+                               parameter == "b[12]" ~ "PPT",
+                               parameter == "b[13]" ~ "PPT^2",
+                               parameter == "b[14]" ~ "ForestCV",
+                               parameter == "b[15]" ~ "Contagion",
+                               parameter == "b[16]" ~ "NumOpenPatch",
+                               parameter == "b[17]" ~ "PercHarvest",
+                               parameter == "b[18]" ~ "PercBurn",
                                TRUE ~ parameter)) %>%
   mutate(Model = "Model1_TotalExposure")
   
@@ -92,16 +96,4 @@ mod1_est <- as.data.frame(model1_sum$quantiles) %>%
 write.csv(mod1_est, here("data_outputs",
                "04_posterior_summaries",
                "Model1_posteriors.csv"))
-# Sources of variation ----------------------------------------------------
 
-model_s$q50$sig.nest
-model_s$q2.5$sig.nest
-model_s$q97.5$sig.nest
-
-model_s$q50$sig.transect
-model_s$q2.5$sig.transect
-model_s$q97.5$sig.transect
-
-model_s$q50$sig.year
-model_s$q2.5$sig.year
-model_s$q97.5$sig.year

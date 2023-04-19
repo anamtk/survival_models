@@ -98,16 +98,4 @@ write.csv(mod3_est, here("data_outputs",
                          "Model3_posteriors.csv"))
 
 
-# Sources of variation ----------------------------------------------------
-
-model_s$q50$sig.nest
-model_s$q2.5$sig.nest
-model_s$q97.5$sig.nest
-
-model_s$q50$sig.transect
-model_s$q2.5$sig.transect
-model_s$q97.5$sig.transect
-
-model_s$q50$sig.year
-model_s$q2.5$sig.year
-model_s$q97.5$sig.year
+#

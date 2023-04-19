@@ -64,31 +64,25 @@ y <- as.data.frame(data$y) %>%
   pivot_longer(1:15,
                names_to = "Interval",
                values_to = "Fate_class") %>%
-  mutate(type = "Observed") %>%
   filter(!is.na(Fate_class)) %>%
-  unite(col = "Nest_interval", 
-        c("Interval", "Nest_ID"),
-        sep = "_",
-        remove = T)
+  group_by(Nest_ID) %>%
+  filter(Interval == max(Interval, na.rm = T)) %>%
+  ungroup() %>%
+  mutate(type = "Observed") 
 
 # Get yrep into DF format for graphing ------------------------------------
 
 #extract the yreps, which for this model, which is an array of 
 # iterations, nests, visits to nests, or a 3-D matrix
-yreps <- mod_GOF$sims.list$yrep
+yreps <- mod_GOF$sims.list$y.repkeep
 
 #Using the melt function from reshape2 package, turn the 3-D matrix
 #into a dataframe with a column for iteration ID, nest ID, and interval ID
 yrep<- reshape2::melt(yreps) %>%
   rename("Iteration" = "Var1",
          "Nest_ID" = "Var2",
-         "Interval" = "Var3",
          "Fate_class" = "value") %>%
-  mutate(type = "Simulated")  %>%
-  unite(col = "Nest_interval", 
-        c("Interval", "Nest_ID"),
-        sep = "_",
-        remove = T)
+  mutate(type = "Simulated")
 
 # Graph observed versus simulated -----------------------------------------
 
@@ -99,7 +93,7 @@ yrep<- reshape2::melt(yreps) %>%
                 alpha = 0.2) +
    geom_density(data = y, aes(x = Fate_class, fill = type), alpha = 0.5)) 
 
-#look pretty good actually - WHY NOW.
+#look not so good for final data - more 1s being predicted than 0s
 
 
 # Balanced Accuracy -------------------------------------------------------
@@ -121,7 +115,7 @@ acc_df <- data.frame(matrix(NA,
 colnames(acc_df) <- c("sensitivity", "specificity", "accuracy")
 
 for(i in 1:n.iter){
-  acc_df[i,] <- accuracy_fun(yrep, y1, "Nest_interval", iteration.num = i)
+  acc_df[i,] <- accuracy_fun(yrep, y1, "Nest_ID", iteration.num = i)
 }
 
 (m2_acc <- acc_df %>%
@@ -136,12 +130,90 @@ for(i in 1:n.iter){
     ylim(0, 1))
 
 
+#Across all data
+y2 <- as.data.frame(data$y) %>%
+  mutate(Nest_ID = 1:n()) %>%
+  pivot_longer(1:15,
+               names_to = "Interval",
+               values_to = "Fate_class") %>%
+  filter(!is.na(Fate_class)) %>%
+  mutate(type = "Observed")  %>%
+  unite(col = "Nest_interval", 
+        c("Interval", "Nest_ID"),
+        remove = T) %>%
+  rename("Observed_fate" = "Fate_class")
+
+#extract the yreps, which for this model, which is an array of 
+# iterations, nests, visits to nests, or a 3-D matrix
+yreps2 <- mod_GOF$sims.list$yrep
+
+#Using the melt function from reshape2 package, turn the 3-D matrix
+#into a dataframe with a column for iteration ID, nest ID, and interval ID
+yrep2<- reshape2::melt(yreps2) %>%
+  rename("Iteration" = "Var1",
+         "Nest_ID" = "Var2",
+         "Interval" = "Var3",
+         "Fate_class" = "value") %>%
+  mutate(type = "Simulated")  %>%
+  unite(col = "Nest_interval", 
+        c("Interval", "Nest_ID"),
+        remove = T) 
+
+acc_df2 <- data.frame(matrix(NA,
+                            nrow = n.iter,
+                            ncol = 3))
+
+colnames(acc_df2) <- c("sensitivity", "specificity", "accuracy")
+
+for(i in 1:n.iter){
+  acc_df2[i,] <- accuracy_fun(yrep2, y2, "Nest_interval", iteration.num = i)
+}
+
+(m2_acc2 <- acc_df2 %>%
+    pivot_longer(1:3,
+                 names_to = "metric",
+                 values_to = "value") %>%
+    mutate(metric = factor(metric, levels = c("sensitivity", 
+                                              "specificity", 
+                                              "accuracy"))) %>%
+    ggplot(aes(x = metric, y = value)) +
+    geom_boxplot() +
+    ylim(0, 1))
+
 # AUC ---------------------------------------------------------------------
+
+resp <- as.vector(y$Fate_class)
+
+iteration.num <- length(mod_GOF$sims.list$p.intkeep[,1])
+
+AUC_JAGS4(mod_GOF, 
+          iteration.num = 11, 
+          resp = resp)
+
+mod2_AUC <- rep(NA, iteration.num)
+
+for(i in 1:iteration.num){
+  mod2_AUC[i] <- AUC_JAGS4(mod_GOF, 
+                          iteration.num = i, 
+                          resp = resp)
+}
+
+as.data.frame(mod2_AUC) %>%
+  summarise(mean = mean(mod2_AUC))
+
+(mod2_AUC_plot <- as.data.frame(mod2_AUC) %>%
+    ggplot() +
+    geom_histogram(aes(x = mod2_AUC)) +
+    geom_vline(xintercept = 0.73, linetype = 2) +
+    labs(title = "Interval-level response \n (last survey data only), logit link"))
+
+
+#THIS IS for all - would need to track pint though for all intervals
 t <- mod_GOF$sims.list$p.int
 
 layers <- dim(t)[[3]]
 
-dfs <- lapply(1:layers, 
+dfs <- lapply(1:layers,
               function(x){
                 return(as.data.frame(t[,,x]))
               } )
@@ -177,20 +249,20 @@ AUC_JAGS2(df = full_df,
 
 iteration.num <- length(unique(full_df$iteration))
 
-mod2_AUC <- rep(NA, iteration.num)
+mod2_AUC2 <- rep(NA, iteration.num)
 
 for(i in 1:iteration.num){
-  mod2_AUC[i] <- AUC_JAGS2(df = full_df, 
-                           iteration.num = i, 
+  mod2_AUC2[i] <- AUC_JAGS2(df = full_df,
+                           iteration.num = i,
                            resp = resp$resp)
 }
 
-as.data.frame(mod2_AUC) %>%
-  summarise(mean = mean(mod2_AUC))
+as.data.frame(mod2_AUC2) %>%
+  summarise(mean = mean(mod2_AUC2))
 
-mod2_AUC_plot <- as.data.frame(mod2_AUC) %>%
+(mod2_AUC_plotall <- as.data.frame(mod2_AUC2) %>%
   ggplot() +
-  geom_histogram(aes(x = mod2_AUC)) +
+  geom_histogram(aes(x = mod2_AUC2)) +
   geom_vline(xintercept = 0.54, linetype = 2) +
-  labs(title = "Interval-level response, logit link")
+  labs(title = "Interval-level response, logit link"))
 
