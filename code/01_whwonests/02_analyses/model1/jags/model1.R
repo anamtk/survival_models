@@ -30,23 +30,23 @@ model{
     # probability "p"
     y[i] ~ dbern(p[i])
     
-    #to convert to daily survival. 
+    #to convert from daily survival. 
     #accounts for different 'exposure times'
-    p[i] <- ps[i]^t[i]
+    p[i] <- pow(ps[i], t[i])
     
+    #daily survival regression
     logit(ps[i]) <-  #set of covariates on probability
       # centering to fix identifiability issues
-      b0.transect[Transect.num[i]] + #this encapsulates nests on a transect
+      b0.transect[Transect.num[i]] + #this encapsulates transects within forest
       #Crossed random effect of year:
       b0.year[Year.num[i]] + #this is summed to zero for identifiabilty
       # see in priors below
-      #categorical covariates
-      # Treatment categorical covariates
+      # Treatment categorical covariate
       b1TreatmentID[TreatmentID[i]] +
       #nest categorical covariate
       b2SpeciesID[SpeciesID[i]] +
-      #continuous covariates
-      b3StageID[Stage[i]] +
+      #Stage Categorical covariate
+      b3StageID[StageID[i]] +
       #Nest continuouse covariates
       b[4]*NestHt[i]+
       b[5]*cosOrientation[i] +
@@ -92,8 +92,8 @@ model{
     cosOrientation[i] ~ dnorm(mu.orient, tau.orient)
     
     #temp is dependent on forest location
-    Tmax[i] ~ dnorm(mu.tmax[Forest.num[i]], tau.tmax[Forest.num[i]])
-    PPT[i] ~ dnorm(mu.ppt[Forest.num[i]], tau.ppt[Forest.num[i]])
+    Tmax[i] ~ dnorm(mu.tmax[Forest.ID[i]], tau.tmax[Forest.ID[i]])
+    PPT[i] ~ dnorm(mu.ppt[Forest.ID[i]], tau.ppt[Forest.ID[i]])
   }
   
   #-------------------------------------## 
@@ -105,8 +105,14 @@ model{
   # Hierarchical spatial random effects
   #each level depends on the level higher than it
   #Nested spatial random structure with hierarchical centering: 
+  #transects within forests
   for(t in 1:n.transects){
-    b0.transect[t] ~ dnorm(b0, tau.transect)
+    b0.transect[t] ~ dnorm(b0.forest[Forest.num[t]], tau.transect)
+  }
+  
+  #forests within overall intercept
+  for(f in 1:n.forests){
+    b0.forest[f] ~ dnorm(b0, tau.forest)
   }
   
   #Crossed effect for year
@@ -124,10 +130,12 @@ model{
   b0 ~ dnorm(0, 1E-2)
   #for low # of levels, from Gellman paper - define sigma
   # as uniform and then precision in relation to this sigma
-  sig.transect ~ dunif(0, 50)
+  sig.transect ~ dunif(0, 10)
+  sig.forest ~ dunif(0, 10)
   sig.year ~ dunif(0, 10)
   
   tau.transect <- 1/pow(sig.transect,2)
+  tau.forest <- 1/pow(sig.forest,2)
   tau.year <- 1/pow(sig.year, 2)
   
   #FIXED COVARIATE PRIORS
@@ -149,6 +157,7 @@ model{
   }
   b3StageID[1] <- 0
   
+  #all other continuous covariate b's
   for(i in 4:18){
     b[i] ~ dnorm(0, 1E-2)
   }

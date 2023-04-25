@@ -92,12 +92,22 @@ Year.num <- nums(Year)
 Nest.num <- 1:n.nests
 
 Forest <- nests %>%
+  distinct(Transect_ID2, 
+           Project_ID) %>%
+  dplyr::select(Project_ID) %>%
+  as.vector()
+
+Forest.num <- nums(Forest)
+
+# MIssing data variables --------------------------------------------------
+
+Forest1 <- nests %>%
   distinct(Nest_ID,
            Transect_ID2,
            Project_ID) %>%
   dplyr::select(Project_ID) %>%
   as_vector()
-Forest.num <- nums(Forest)
+Forest.ID <- nums(Forest1)
            
 # Nest and stand covariates -----------------------------------------------
 # **might be able to subset these based on previous literature**
@@ -204,21 +214,26 @@ all_data <- list(#Data count variables
                  Year.num = Year.num,
                  Transect.num = Transect.num,
                  Forest.num = Forest.num,
+                 #Missing data
+                 Forest.ID = Forest.ID,
                  #Treatment covariate
                  TreatmentID = TreatmentID, 
+                 #Nest species
+                 SpeciesID = SpeciesID, 
+                 #nest Stage
+                 StageID = StageID,
                  #Nest-level covariates
                  NestHt = NestHt, 
                  cosOrientation = cosOrientation,
                  InitDay = InitDay, 
-                 SpeciesID = SpeciesID, 
-                 Stage = Stage,
                  #Local-level covariates
                  Trees50 = Trees50,
                  Trees2550 = Trees2550, 
                  PercPonderosa = PercPonderosa,
-                 #landscape-scale covariates
+                #climate covariates
                  Tmax = Tmax,
                  PPT = PPT,
+                 #landscape-scale covariates
                  ForestCV = ForestCV,
                  Contag = Contag,
                  OpenNm = OpenNm,
@@ -226,7 +241,7 @@ all_data <- list(#Data count variables
                  LandBu = LandBu,
                  #dataset
                  y = y,
-                 #exposurte
+                 #exposure
                  t = t)
 
 saveRDS(all_data, here("data_outputs", 

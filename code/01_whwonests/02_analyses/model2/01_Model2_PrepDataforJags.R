@@ -113,12 +113,22 @@ Year.num <- nums(Year)
 Nest.num <- 1:n.nests
 
 Forest <- nests %>%
+  distinct(Transect_ID2,
+           Project_ID) %>%
+  dplyr::select(Project_ID) %>%
+  as_vector()
+
+Forest.num <- nums(Forest)
+
+# MIssing data values -----------------------------------------------------
+
+Forest1 <- nests %>%
   distinct(Nest_ID,
            Transect_ID2,
            Project_ID) %>%
   dplyr::select(Project_ID) %>%
   as_vector()
-Forest.num <- nums(Forest)
+Forest.ID <- nums(Forest1)
            
 # Nest and stand covariates -----------------------------------------------
 # **might be able to subset these based on previous literature**
@@ -302,23 +312,26 @@ all_data <- list(#Data count variables
                  Year.num = Year.num,
                  Transect.num = Transect.num,
                  Forest.num = Forest.num,
-                 #Interval covariate
-                 StageID = Stage,
-                 Age = Age,
+                 #Missing data
+                 Forest.ID = Forest.ID,
                  #Treatment covariate
-                 TreatmentID = TreatmentID, 
+                 TreatmentID = TreatmentID,
+                 #Interval stage covariate
+                 StageID = Stage, 
+                 #nest tree species
+                 SpeciesID = SpeciesID, 
                  #Nest-level covariates
                  NestHt = NestHt, 
                  cosOrientation = cosOrientation,
                  InitDay = InitDay, 
-                 SpeciesID = SpeciesID, 
                  #Local-level covariates
                  Trees50 = Trees50,
                  Trees2550 = Trees2550, 
                  PercPonderosa = PercPonderosa,
-                 #landscape-scale covariates
+                 #climate covariates
                  Tmax = Tmax,
                  PPT = PPT,
+                 #landscape-scale covariates
                  ForestCV = ForestCV,
                  Contag = Contag,
                  OpenNm = OpenNm,

@@ -51,7 +51,7 @@ n.nests2 <- Nests %>%
   tally() %>%
   as_vector()
 
-tot.nests <- length(Nests$Nest_ID)
+n.nests <- length(Nests$Nest_ID)
 
 #How many times did each nest get measured
 #(number of intervals)
@@ -114,12 +114,21 @@ Year.num <- nums(Year)
 Nest.num <- 1:tot.nests
 
 Forest <- nests1 %>%
+  distinct(Transect_ID2,
+           Project_ID) %>%
+  dplyr::select(Project_ID) %>%
+  as_vector()
+Forest.num <- nums(Forest)
+
+# Missing data ------------------------------------------------------------
+
+Forest1 <- nests1 %>%
   distinct(Nest_ID,
            Transect_ID2,
            Project_ID) %>%
   dplyr::select(Project_ID) %>%
   as_vector()
-Forest.num <- nums(Forest)
+Forest.ID <- nums(Forest1)
            
 # Nest and stand covariates -----------------------------------------------
 # **might be able to subset these based on previous literature**
@@ -275,8 +284,7 @@ length(y[which(y == 0)]) #92
 
 all_data <- list(#Data count variables
                  n.nests1 = n.nests1,
-                 n.nests2 = n.nests2,
-                 tot.nests = tot.nests,
+                 n.nests = n.nests,
                  n.t = n.t, 
                  n.years = n.years,
                  n.transects = n.transects,
@@ -289,23 +297,26 @@ all_data <- list(#Data count variables
                  Year.num = Year.num,
                  Transect.num = Transect.num,
                  Forest.num = Forest.num,
-                 #Interval covariate
-                 StageID = Stage,
-                 Age = Age,
+                 #missing data
+                 Forest.ID = Forest.ID,
                  #Treatment covariate
                  TreatmentID = TreatmentID, 
+                 #nest tree species
+                 SpeciesID = SpeciesID, 
+                 #Interval stage covariate
+                 StageID = Stage,
                  #Nest-level covariates
                  NestHt = NestHt, 
                  cosOrientation = cosOrientation,
                  InitDay = InitDay, 
-                 SpeciesID = SpeciesID, 
                  #Local-level covariates
                  Trees50 = Trees50,
                  Trees2550 = Trees2550, 
                  PercPonderosa = PercPonderosa,
-                 #landscape-scale covariates
+                 #climate covariates
                  Tmax = Tmax,
                  PPT = PPT,
+                 #landscape-scale covariates
                  ForestCV = ForestCV,
                  Contag = Contag,
                  OpenNm = OpenNm,
@@ -313,6 +324,7 @@ all_data <- list(#Data count variables
                  LandBu = LandBu,
                  #dataset
                  y = y,
+                 #duplicated dataset for ifelse statement
                  y2 = y,
                  #interval lengths
                  t = t)
