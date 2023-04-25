@@ -1,0 +1,16 @@
+---
+title: "Draft_April2023"
+format: html
+editor: visual
+---
+
+## Equations
+
+```{=tex}
+\begin{cases}\tag{1}\label{eq-a}
+  p_1 & \text{if } y = 0 \:\&\: n.intervals = 1\\
+  p_2 & \text{if } y = 0\:\&\: n.intervals > 1\\
+ p_3 & \text{if } y = 1
+
+\end{cases}
+```
