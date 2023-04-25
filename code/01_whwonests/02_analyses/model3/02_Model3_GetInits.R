@@ -39,10 +39,7 @@ params <- c(
             #Variance/precision
             'sig.transect',
             'sig.year',
-            'b',
-            'b1StageID',
-            'b2TreatmentID',
-            'b3SpeciesID'
+            'b'
           )
                         
 
@@ -55,7 +52,7 @@ model <- here("code",
               "02_analyses",
               "model3",
               "jags",
-              "model3.R")
+              "model3_simple.R")
 
 Sys.time()
 mod <- jagsUI::jags(data = data,
@@ -64,16 +61,12 @@ mod <- jagsUI::jags(data = data,
                             parameters.to.save = params,
                             parallel = TRUE,
                             n.chains = 3,
-                            n.iter = 4000,
+                            n.iter = 20000,
                             DIC = TRUE)
 Sys.time()
-# saveRDS(mod, here("monsoon",
-#                   "01_whwonests",
-#                   "model3",
-#                   "outputs",
-#                   "model3_JAGS_model.RDS"))
-mcmcplot(mod$samples)
 
+mcmcplot(mod$samples)
+gelman.diag(mod$samples, multivariate = F)
 # Raftery -----------------------------------------------------------------
 
 raf <- raftery.diag(mod$samples)

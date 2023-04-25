@@ -42,10 +42,7 @@ params <- c(
             #Variance/precision
             'sig.transect',
             'sig.year',
-            'b',
-            'b1TreatmentID',
-            'b2SpeciesID',
-            'b3StageID'
+            'b'
             )
 
 
@@ -56,7 +53,7 @@ model <- here("code",
               "02_analyses",
               "model1",
               "jags",
-              "model1.R")
+              "model1_simple.R")
 
 mod <- jagsUI::jags(data = data,
                             inits = NULL,
@@ -64,11 +61,12 @@ mod <- jagsUI::jags(data = data,
                             parameters.to.save = params,
                             parallel = TRUE,
                             n.chains = 3,
-                            n.iter = 4000,
+                            n.iter = 8000,
                             DIC = TRUE)
 
 mcmcplot(mod$samples)
 
+gelman.diag(mod$samples, multivariate = F)
 # Raftery -----------------------------------------------------------------
 
 raf <- raftery.diag(mod$samples)
