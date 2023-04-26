@@ -26,8 +26,7 @@ for(i in package.list){library(i, character.only = T)}
 data <- readRDS("/scratch/atm234/survival_models/model1/inputs/mod1_JAGS_input_data.RDS")
 
 # Compile data ------------------------------------------------------------
-data_list <- list(#overall values for likelihood loops
-                  #Data count variables
+data_list <- list(#Data count variables
                   n.nests = data$n.nests,
                   n.years = data$n.years,
                   n.transects = data$n.transects,
@@ -40,21 +39,26 @@ data_list <- list(#overall values for likelihood loops
                   Year.num = data$Year.num,
                   Transect.num = data$Transect.num,
                   Forest.num = data$Forest.num,
+                  #Missing data
+                  Forest.ID = data$Forest.ID,
                   #Treatment covariate
                   TreatmentID = data$TreatmentID, 
+                  #Nest species
+                  SpeciesID = data$SpeciesID, 
+                  #nest Stage
+                  StageID = data$StageID,
                   #Nest-level covariates
                   NestHt = data$NestHt, 
                   cosOrientation = data$cosOrientation,
                   InitDay = data$InitDay, 
-                  SpeciesID = data$SpeciesID, 
-                  Stage = data$Stage,
                   #Local-level covariates
                   Trees50 = data$Trees50,
                   Trees2550 = data$Trees2550, 
                   PercPonderosa = data$PercPonderosa,
-                  #landscape-scale covariates
+                  #climate covariates
                   Tmax = data$Tmax,
                   PPT = data$PPT,
+                  #landscape-scale covariates
                   ForestCV = data$ForestCV,
                   Contag = data$Contag,
                   OpenNm = data$OpenNm,
@@ -62,25 +66,27 @@ data_list <- list(#overall values for likelihood loops
                   LandBu = data$LandBu,
                   #dataset
                   y = data$y,
-                  #exposurte
+                  #exposure
                   t = data$t)
 
 # Parameters to save ------------------------------------------------------
 
 params <- c(
-  #Random covariate betas
-  'b0.transect',
-  'b0.year',
-  'b0',
-  #Variance/precision
-  'sig.transect',
-  'sig.year',
-  'b',
-  'b1TreatmentID',
-  'b2SpeciesID',
-  'b3StageID'
-)
-
+            #Random covariate betas
+            'b0.transect',
+            'b0.forest',
+            'b0.year',
+            'b0',
+            #Variance/precision
+            'sig.transect',
+            'sig.forest',
+            'sig.year',
+            #covariates
+            'b1TreatmentID',
+            'b2SpeciesID',
+            'b3StageID',
+            'b'
+          )
 
 # INits -------------------------------------------------------------------
 

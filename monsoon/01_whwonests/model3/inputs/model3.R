@@ -78,7 +78,7 @@ model{
   } #single survey nests
   
   #for nests with > 1 interval
-  for(i in (n.nests1+1):tot.nests){ 
+  for(i in (n.nests1+1):n.nests){ 
     
     #these data are bernoulli distributed
     #around total nesting period survival
@@ -94,7 +94,7 @@ model{
     # survival probability is the product of all
     # those intervals
     #y = 1
-    p_2[i] <- prod(p.int[i, 1:n.t[i]])
+    pa[i] <- prod(p.int[i, 1:n.t[i]])
     
     #IF the nest did not survive at the end and was 
     # surveyed for more than one interal, it's survival
@@ -102,7 +102,7 @@ model{
     # minus the "mortality probability (1-survival) for
     # the last interval
     #y = 0, n.interval > 1
-    p_3[i] <-  1 - prod(p.int[i, 1:(n.t[i]-1)]) *
+    pb[i] <-  1 - prod(p.int[i, 1:(n.t[i]-1)]) *
       (1 - p.int[i, n.t[i]])
     
     #total nest survival is based on 
@@ -114,9 +114,9 @@ model{
     #only one interval and died, p1
     p2[i] <- 
       #lived through all intervals, p_2
-      (y2[i]==1)*p_2[i] +
+      (y2[i]==1)*pa[i] +
       #died in an interval after the first one , p3
-      (y2[i] == 0)*p_3[i]
+      (y2[i] == 0)*pb[i]
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###
@@ -136,25 +136,36 @@ model{
   # throughout the nesting season and the covariates
   # that shape survival at a daily scale.
   #for all nests in dataset
-  for(i in 1:tot.nests){ #all nests in dataset
+  for(i in 1:n.nests){ #all nests in dataset
     for(j in 1:n.t[i]){ #interval # for nest i
       
+      #each interval survival, p.int, is that daily
+      #survival raised to the power of the number
+      # of days in that interval
+      p.int[i,j] <-  pow(ps[i,j], t[i,j])
+      
+      #this interval survival then goes back into 
+      # the overall nest survival with custom
+      #probabilities above in the nest loops
+      
+      #daily survival regression
       #daily survival = ps[i,j]
       #covariates that could be at the 
       #nest scale or at the nest + interval level
       logit(ps[i,j]) <- 
         #hierarchically centered random intercept for
-        # nest within transect
+        # transect within forest
         b0.transect[Transect.num[i]] + 
         #summed to zero random intercept for survey year
         b0.year[Year.num[i]] +
+        #Treatment category at nest site
+        b1TreatmentID[TreatmentID[i]] +
+        #nest species categorical covariate
+        b2SpeciesID[SpeciesID[i]] +
         #category of the stage the nest was in in 
         # interval j
-        b1StageID[StageID[i,j]] +
-        #Treatment category at nest site
-        b2TreatmentID[TreatmentID[i]] +
-        #nest-level covariates
-        b3SpeciesID[SpeciesID[i]] +
+        b3StageID[StageID[i,j]] +
+        #Nest continuous covariates
         b[4]*NestHt[i] +
         b[5]*cosOrientation[i] +
         b[6]*InitDay[i] +
@@ -174,15 +185,6 @@ model{
         b[17]*LandHa[i] +
         b[18]*LandBu[i]
       
-      #each interval survival, p.int, is that daily
-      #survival raised to the power of the number
-      # of days in that interval
-      p.int[i,j] <-  ps[i,j]^t[i,j]
-      
-      #this interval survival then goes back into 
-      # the overall nest survival with custom
-      #probabilities above in the nest loops
-      
       #-------------------------------------## 
       # Imputing missing data ###
       #-------------------------------------##
@@ -193,8 +195,8 @@ model{
       # data for each variable
       
       #temp is dependent on forest location
-      Tmax[i,j] ~ dnorm(mu.tmax[Forest.num[i]], tau.tmax[Forest.num[i]])
-      PPT[i,j] ~ dnorm(mu.ppt[Forest.num[i]], tau.ppt[Forest.num[i]])
+      Tmax[i,j] ~ dnorm(mu.tmax[Forest.ID[i]], tau.tmax[Forest.ID[i]])
+      PPT[i,j] ~ dnorm(mu.ppt[Forest.ID[i]], tau.ppt[Forest.ID[i]])
       
       
     } #interval j
@@ -225,8 +227,14 @@ model{
   # Hierarchical spatial random effects
   #each level depends on the level higher than it
   #Nested spatial random structure with hierarchical centering: 
+  #tranescts within forests
   for(t in 1:n.transects){
-    b0.transect[t] ~ dnorm(b0, tau.transect)
+    b0.transect[t] ~ dnorm(b0.forest[Forest.num[t]], tau.transect)
+  }
+  
+  #forests within overall intercept
+  for(f in 1:n.forests){
+    b0.forest[f] ~ dnorm(b0, tau.forest)
   }
   
   #Crossed effect for year
@@ -245,30 +253,33 @@ model{
   #for low # of levels, from Gellman paper - define sigma
   # as uniform and then precision in relation to this sigma
   sig.transect ~ dunif(0, 10)
+  sig.forest ~ dunif(0, 10)
   sig.year ~ dunif(0, 10)
   
   tau.transect <- 1/pow(sig.transect,2)
+  tau.forest <- 1/pow(sig.forest,2)
   tau.year <- 1/pow(sig.year, 2)
   
   #FIXED COVARIATE PRIORS
   #Categorical variables
   #this is all in relation to first treatment
   #Ensure treatment == 1 has the most observations!!
-  for(s in 2:n.stages){
-    b1StageID[s] ~ dnorm(0, 1E-2)
-  }
-  b1StageID[1] <- 0
-  
   for(tt in 2:n.trt){
-    b2TreatmentID[tt] ~ dnorm(0, 1E-2)
+    b1TreatmentID[tt] ~ dnorm(0, 1E-2)
   }
-  b2TreatmentID[1] <- 0
+  b1TreatmentID[1] <- 0
   
   for(s in 2:n.species){
-    b3SpeciesID[s] ~ dnorm(0, 1E-2)
+    b2SpeciesID[s] ~ dnorm(0, 1E-2)
   }
-  b3SpeciesID[1] <- 0
+  b2SpeciesID[1] <- 0
   
+  for(s in 2:n.stages){
+    b3StageID[s] ~ dnorm(0, 1E-2)
+  }
+  b3StageID[1] <- 0
+
+  #for all other continuous covariates b's
   for(i in 4:18){
     b[i] ~ dnorm(0, 1E-2)
   }
@@ -298,7 +309,7 @@ model{
     tau.tmax[f] <- pow(sig.tmax[f], -2)
     mu.ppt[f] ~ dunif(-10, 10)
     sig.ppt[f] ~ dunif(0, 20)
-    tau.ppt[f] <- pow(sig.tmax[f], -2)
+    tau.ppt[f] <- pow(sig.ppt[f], -2)
   }
   
 

@@ -26,8 +26,7 @@ for(i in package.list){library(i, character.only = T)}
 data <- readRDS("/scratch/atm234/survival_models/model2/inputs/mod2_JAGS_input_data.RDS")
 
 # Compile data ------------------------------------------------------------
-data_list <- list(#overall values for likelihood loops
-                  #Data count variables
+data_list <- list(#Data count variables
                   n.nests = data$n.nests,
                   n.t = data$n.t, 
                   n.years = data$n.years,
@@ -37,27 +36,29 @@ data_list <- list(#overall values for likelihood loops
                   n.stages = data$n.stages,
                   n.forests = data$n.forests,
                   #Random effects IDs
-                  Nest.num = data$Nest.num,
                   Year.num = data$Year.num,
                   Transect.num = data$Transect.num,
                   Forest.num = data$Forest.num,
-                  #Interval covariate
-                  StageID = data$Stage,
-                  Age = data$Age,
+                  #Missing data
+                  Forest.ID = data$Forest.ID,
                   #Treatment covariate
-                  TreatmentID = data$TreatmentID, 
+                  TreatmentID = data$TreatmentID,
+                  #Interval stage covariate
+                  StageID = data$Stage, 
+                  #nest tree species
+                  SpeciesID = data$SpeciesID, 
                   #Nest-level covariates
                   NestHt = data$NestHt, 
                   cosOrientation = data$cosOrientation,
                   InitDay = data$InitDay, 
-                  SpeciesID = data$SpeciesID, 
                   #Local-level covariates
                   Trees50 = data$Trees50,
                   Trees2550 = data$Trees2550, 
                   PercPonderosa = data$PercPonderosa,
-                  #landscape-scale covariates
+                  #climate covariates
                   Tmax = data$Tmax,
                   PPT = data$PPT,
+                  #landscape-scale covariates
                   ForestCV = data$ForestCV,
                   Contag = data$Contag,
                   OpenNm = data$OpenNm,
@@ -71,18 +72,20 @@ data_list <- list(#overall values for likelihood loops
 # Parameters to save ------------------------------------------------------
 params <- c(
             #Random covariate betas
+            'b0.forest',
             'b0.transect',
             'b0.year',
             'b0',
             #Variance/precision
+            'sig.forest',
             'sig.transect',
             'sig.year',
+            #covariates
             'b',
-            'b1StageID',
-            'b2TreatmentID',
-            'b3SpeciesID'
+            'b1TreatmentID',
+            'b2SpeciesID',
+            'b3StageID'
           )
-
 # INits -------------------------------------------------------------------
 
 inits <- readRDS("/scratch/atm234/survival_models/model2/inputs/model2_inits.RDS")
@@ -97,7 +100,7 @@ mod <- jagsUI::jags(data = data_list,
                         parallel = TRUE,
                         n.chains = 3,
                         n.burnin = 1000,
-                        n.iter = 111000,
+                        n.iter = 50000,
                         DIC = TRUE)
 
 #save as an R data object

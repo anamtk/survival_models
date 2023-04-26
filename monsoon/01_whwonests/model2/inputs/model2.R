@@ -50,34 +50,33 @@ model {
         #Crossed random effect of year:
         b0.year[Year.num[i]] + #this is summed to zero for identifiabilty
         # see in priors below
-        #categorical covariates
-        # Interval categorical covariate:
-        b1StageID[StageID[i, j]] + 
-        # Treatment categorical covariates
-        b2TreatmentID[TreatmentID[i]] +
+        #Interval covariates
+        # Treatment categorical covariate
+        b1TreatmentID[TreatmentID[i]] +
         #nest categorical covariate
-        b3SpeciesID[SpeciesID[i]] +
+        b2SpeciesID[SpeciesID[i]] +
+        #Stage categorical covariate
+        b3StageID[StageID[i, j]] + 
         #continuous covariates
         #Nest continuouse covariates
-        #b[4]*Age[i,j] +
-        b[5]*NestHt[i] +
-        b[6]*cosOrientation[i] +
-        b[7]*InitDay[i] +
+        b[4]*NestHt[i] +
+        b[5]*cosOrientation[i] +
+        b[6]*InitDay[i] +
         #local-level covariates
-        b[8]*Trees50[i] +
-        b[9]*Trees2550[i] +
-        b[10]*PercPonderosa[i] +
+        b[7]*Trees50[i] +
+        b[8]*Trees2550[i] +
+        b[9]*PercPonderosa[i] +
         #climate covariates
-        b[11]*Tmax[i,j] +
-        b[12]*Tmax[i,j]^2 +
-        b[13]*PPT[i,j] +
-        b[14]*PPT[i,j]^2 +
+        b[10]*Tmax[i,j] +
+        b[11]*Tmax[i,j]^2 +
+        b[12]*PPT[i,j] +
+        b[13]*PPT[i,j]^2 +
         #Landscape covariates
-        b[15]*ForestCV[i] +
-        b[16]*Contag[i] +
-        b[17]*OpenNm[i] +
-        b[18]*LandHa[i] +
-        b[19]*LandBu[i]
+        b[14]*ForestCV[i] +
+        b[15]*Contag[i] +
+        b[16]*OpenNm[i] +
+        b[17]*LandHa[i] +
+        b[18]*LandBu[i]
       
       #-------------------------------------## 
       # Imputing missing data ###
@@ -89,8 +88,8 @@ model {
       # data for each variable
       
       #temp and ppt are dependent on forest location
-      Tmax[i, j] ~ dnorm(mu.tmax[Forest.num[i]], tau.tmax[Forest.num[i]])
-      PPT[i,j]~ dnorm(mu.tmax[Forest.num[i]], tau.tmax[Forest.num[i]])
+      Tmax[i, j] ~ dnorm(mu.tmax[Forest.ID[i]], tau.tmax[Forest.ID[i]])
+      PPT[i,j]~ dnorm(mu.ppt[Forest.ID[i]], tau.ppt[Forest.ID[i]])
       
       #-------------------------------------## 
       # Model Goodness-of-fit objects ###
@@ -134,10 +133,15 @@ model {
   # Hierarchical spatial random effects
   #each level depends on the level higher than it
   #Nested spatial random structure with hierarchical centering: 
+  #transects within forests
   for(t in 1:n.transects){
-    b0.transect[t] ~ dnorm(b0, tau.transect)
+    b0.transect[t] ~ dnorm(b0.forest[Forest.num[t]], tau.transect)
   }
   
+  #forests within overall intercept
+  for(f in 1:n.forests){
+    b0.forest[f] ~ dnorm(b0, tau.forest)
+  }
   #Crossed effect for year
   #this effect is summed to zero for identifiability issues
   
@@ -154,31 +158,34 @@ model {
   #for low # of levels, from Gellman paper - define sigma
   # as uniform and then precision in relation to this sigma
   sig.transect ~ dunif(0, 10)
+  sig.forest ~ dunif(0, 10)
   sig.year ~ dunif(0, 10)
   
   tau.transect <- 1/pow(sig.transect,2)
+  tau.forest <- 1/pow(sig.forest, 2)
   tau.year <- 1/pow(sig.year, 2)
   
   #FIXED COVARIATE PRIORS
   #Categorical variables
   #this is all in relation to first treatment
   #Ensure treatment == 1 has the most observations!!
-  for(s in 2:n.stages){
-    b1StageID[s] ~ dnorm(0, 1E-2)
-  }
-  b1StageID[1] <- 0
-  
   for(tt in 2:n.trt){
-    b2TreatmentID[tt] ~ dnorm(0, 1E-2)
+    b1TreatmentID[tt] ~ dnorm(0, 1E-2)
   }
-  b2TreatmentID[1] <- 0
+  b1TreatmentID[1] <- 0
   
   for(s in 2:n.species){
-    b3SpeciesID[s] ~ dnorm(0, 1E-2)
+    b2SpeciesID[s] ~ dnorm(0, 1E-2)
   }
-  b3SpeciesID[1] <- 0
+  b2SpeciesID[1] <- 0
   
-  for(i in 5:19){
+  for(s in 2:n.stages){
+    b3StageID[s] ~ dnorm(0, 1E-2)
+  }
+  b3StageID[1] <- 0
+
+  #all other continuous covariate b's
+  for(i in 4:18){
     b[i] ~ dnorm(0, 1E-2)
   }
   
@@ -205,6 +212,9 @@ model {
      mu.tmax[f] ~ dunif(-10, 10)
      sig.tmax[f] ~ dunif(0, 20)
      tau.tmax[f] <- pow(sig.tmax[f], -2)
+     mu.ppt[f] ~ dunif(-10, 10)
+     sig.ppt[f] ~ dunif(0, 20)
+     tau.ppt[f] <- pow(sig.ppt[f], -2)
    }
   
 }
