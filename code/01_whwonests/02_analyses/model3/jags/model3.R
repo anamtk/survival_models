@@ -309,7 +309,7 @@ model{
     tau.tmax[f] <- pow(sig.tmax[f], -2)
     mu.ppt[f] ~ dunif(-10, 10)
     sig.ppt[f] ~ dunif(0, 20)
-    tau.ppt[f] <- pow(sig.tmax[f], -2)
+    tau.ppt[f] <- pow(sig.ppt[f], -2)
   }
   
 

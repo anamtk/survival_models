@@ -104,41 +104,60 @@ yrep <- yrep_1 %>%
 #look like it varies by iteration how well it does
 
 
-# Balanced Accuracy -------------------------------------------------------
 
-#sensitivity = true positive/(true positive + false negative)
-#specificity = true negative/(true negative + false negative)
-#balanced accuracy = (sensitivity+specificity)/2
-
-y1 <- y %>%
-  dplyr::select(-type) %>%
-  rename("Observed_fate" = "Fate_class")
-
-n.iter <- length(unique(yrep$Iteration))
-
-acc_df <- data.frame(matrix(NA,
-                            nrow = n.iter,
-                            ncol = 3))
-
-colnames(acc_df) <- c("sensitivity", "specificity", "accuracy")
-
-for(i in 1:n.iter){
-  acc_df[i,] <- accuracy_fun(yrep, y1, "Nest_ID", iteration.num = i)
-}
-
-(m3_acc <- acc_df %>%
-  pivot_longer(1:3,
-               names_to = "metric",
-               values_to = "value") %>%
-  mutate(metric = factor(metric, levels = c("sensitivity", 
-                                            "specificity", 
-                                            "accuracy"))) %>%
-  ggplot(aes(x = metric, y = value)) +
-  geom_boxplot() +
-    ylim(0,1))
+# Predicted accuracy ------------------------------------------------------
 
 
+mu_p1 <- as.data.frame(mod_GOF$mean$yrep_1) %>%
+  rename("P" = 'mod_GOF$mean$yrep_1')
 
+mu_p2 <- as.data.frame(mod_GOF$mean$yrep_2) %>%
+  rename("P" = 'mod_GOF$mean$yrep_2') %>%
+  filter(!is.na(P))
+
+times <- as.data.frame(data$n.t) %>%
+  rename("intervals" = "data$n.t")
+
+mu_p <- mu_p1 %>%
+  bind_rows(mu_p2)
+
+y_acc <- y %>%
+  bind_cols(mu_p, times) %>%
+  mutate(Fate_class = as.factor(Fate_class)) %>%
+  mutate(type = case_when((Fate_class == 0 & P >= .5) ~ "mis-0",
+                          (Fate_class == 0 & P < .5) ~ "match-0",
+                          (Fate_class == 1 & P >= 0.5) ~ "match-1",
+                          (Fate_class == 1 & P < 0.5) ~ "mis-1"))
+
+y_acc %>%
+  group_by(type) %>%
+  tally()
+
+#accuary
+#0s:
+#1s:
+220/(220+8)
+
+(mod1_acc_plot <- ggplot(y_acc, aes(x = Fate_class, y = P)) +
+    geom_hline(yintercept = 0.5, linetype = 2) +
+    geom_boxplot() +
+    labs(x = "Observed fate",
+         y = "Predicted survival probability") )
+
+ggplot(y_acc, aes(x = intervals, y = P, color = Fate_class)) +
+  geom_point()
+
+y_acc %>%
+  mutate(intervals = as.factor(intervals)) %>%
+  ggplot(aes(x = intervals, y = P, fill = Fate_class)) +
+  geom_boxplot()
+
+y_acc %>%
+  group_by(Fate_class) %>%
+  summarise(meanp = mean(P),
+            sdp = sd(P),
+            total = n(),
+            sep = sdp/sqrt(total))
 # AUC ---------------------------------------------------------------------
 
 

@@ -91,39 +91,47 @@ yrep<- reshape2::melt(yreps) %>%
 # confusing...
 
 
-# Balanced Accuracy -------------------------------------------------------
+# Predictive accuracy -----------------------------------------------------
 
-#sensitivity = true positive/(true positive + false negative)
-#specificity = true negative/(true negative + false negative)
-#balanced accuracy = (sensitivity+specificity)/2
+mu_p <- as.data.frame(mod_GOF$mean$p) %>%
+  rename("P" = 'mod_GOF$mean$p')
 
-y1 <- y %>%
-  dplyr::select(-type) %>%
-  rename("Observed_fate" = "Fate_class")
+y_acc <- y %>%
+  bind_cols(mu_p) %>%
+  mutate(Fate_class = as.factor(Fate_class)) %>%
+  mutate(type = case_when((Fate_class == 0 & P >= .5) ~ "mis-0",
+                          (Fate_class == 0 & P < .5) ~ "match-0",
+                          (Fate_class == 1 & P >= 0.5) ~ "match-1",
+                          (Fate_class == 1 & P < 0.5) ~ "mis-1"))
 
-n.iter <- length(unique(yrep$Iteration))
+y_acc %>%
+  group_by(type) %>%
+  tally()
 
-acc_df <- data.frame(matrix(NA,
-                            nrow = n.iter,
-                            ncol = 3))
+#accuary
+#0s:
+79/(79+13)
+#1s:
+225/(225+3)
 
-colnames(acc_df) <- c("sensitivity", "specificity", "accuracy")
-
-for(i in 1:n.iter){
-  acc_df[i,] <- accuracy_fun(yrep, y1, "Nest_ID", iteration.num = i)
-}
-
-(m1_acc <- acc_df %>%
-  pivot_longer(1:3,
-               names_to = "metric",
-               values_to = "value") %>%
-  mutate(metric = factor(metric, levels = c("sensitivity", 
-                                            "specificity", 
-                                            "accuracy"))) %>%
-  ggplot(aes(x = metric, y = value)) +
+(mod1_acc_plot <- ggplot(y_acc, aes(x = Fate_class, y = P)) +
+    geom_hline(yintercept = 0.5, linetype = 2) +
   geom_boxplot() +
-    ylim(0, 1))
-
+  labs(x = "Observed fate",
+       y = "Predicted survival probability") +
+  annotate(geom = "text", 
+           x = 0.75, y = 0.45,
+           label = "86%") +
+  annotate(geom = "text", 
+           x = 2.25, y = 0.55,
+           label = "99%") )
+  
+y_acc %>%
+  group_by(Fate_class) %>%
+  summarise(meanp = mean(P),
+            sdp = sd(P),
+            total = n(),
+            sep = sdp/sqrt(total))
 
 # AUC ---------------------------------------------------------------------
 

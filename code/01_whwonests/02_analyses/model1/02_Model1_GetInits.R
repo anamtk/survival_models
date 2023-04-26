@@ -37,12 +37,26 @@ data <- readRDS(here("data_outputs",
 params <- c(
             #Random covariate betas
             'b0.transect',
+            'b0.forest',
             'b0.year',
             'b0',
             #Variance/precision
             'sig.transect',
+            'sig.forest',
             'sig.year',
-            'b'
+            #covariates
+            'b1TreatmentID',
+            'b2SpeciesID',
+            'b3StageID',
+            'b',
+            #missing data
+            'sig.t25',
+            'sig.t50',
+            'sig.pp',
+            'sig.init',
+            'sig.orient',
+            'sig.tmax',
+            'sig.ppt'
             )
 
 
@@ -53,7 +67,7 @@ model <- here("code",
               "02_analyses",
               "model1",
               "jags",
-              "model1_simple.R")
+              "model1.R")
 
 mod <- jagsUI::jags(data = data,
                             inits = NULL,
@@ -61,7 +75,7 @@ mod <- jagsUI::jags(data = data,
                             parameters.to.save = params,
                             parallel = TRUE,
                             n.chains = 3,
-                            n.iter = 8000,
+                            n.iter = 4000,
                             DIC = TRUE)
 
 mcmcplot(mod$samples)
@@ -127,6 +141,8 @@ burn %>%
 # 
 # # Initials ----------------------------------------------------------------
 # 
+b0.forest <- mod$mean$b0.forest
+sig.forest <- mod$mean$sig.forest
 b0.transect <- mod$mean$b0.transect
 sig.transect <- mod$mean$sig.transect
 b0.year <- c(mod$mean$b0.year[1:9], NA)
@@ -139,7 +155,9 @@ b <- mod$mean$b
 
 # # Set initials ------------------------------------------------------------
 
-inits <- list(list(b0.transect = b0.transect,
+inits <- list(list(b0.forest = b0.forest,
+                   sig.forest = sig.forest,
+                   b0.transect = b0.transect,
                    sig.transect = sig.transect,
                    b0.year = b0.year,
                    sig.year = sig.year,
@@ -148,7 +166,9 @@ inits <- list(list(b0.transect = b0.transect,
                    b2SpeciesID = b2SpeciesID,
                    b3StageID = b3StageID,
                    b = b),
-              list(b0.transect = b0.transect +runif(length(b0.transect), min = 0, max = 1),
+              list(b0.forest = b0.forest + runif(length(b0.forest), min = 0, max = 1),
+                   sig.forest = sig.forest + runif(length(sig.forest), min = 0, max = 1),
+                   b0.transect = b0.transect +runif(length(b0.transect), min = 0, max = 1),
                    sig.transect = sig.transect +runif(length(sig.transect), min = 0, max = 1),
                    b0.year = b0.year + runif(length(b0.year), min = 0, max = 1),
                    sig.year = sig.year + runif(length(sig.year), min = 0, max = 1),
@@ -157,7 +177,9 @@ inits <- list(list(b0.transect = b0.transect,
                    b2SpeciesID = b2SpeciesID + runif(length(b2SpeciesID), min = 0, max = 1),
                    b3StageID = b3StageID + runif(length(b3StageID), min = 0, max = 1),
                    b = b + runif(length(b), min = 0, max = 1)),
-              list(b0.transect = b0.transect -runif(length(b0.transect), min = 0, max = 1),
+              list(b0.forest = b0.forest - runif(length(b0.forest), min = 0, max = 1),
+                   sig.forest = sig.forest + runif(length(sig.forest), min = 0, max = 1),
+                   b0.transect = b0.transect -runif(length(b0.transect), min = 0, max = 1),
                    sig.transect = sig.transect +runif(length(sig.transect), min = 0, max = 1),
                    b0.year = b0.year - runif(length(b0.year), min = 0, max = 1),
                    sig.year = sig.year + runif(length(sig.year), min = 0, max = 1),

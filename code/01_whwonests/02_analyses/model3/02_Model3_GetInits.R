@@ -33,13 +33,27 @@ data <- readRDS(here("data_outputs",
 
 params <- c(
             #Random covariate betas
+            'b0.forest',
             'b0.transect',
             'b0.year',
             'b0',
             #Variance/precision
+            'sig.forest',
             'sig.transect',
             'sig.year',
-            'b'
+            #covariates
+            'b1TreatmentID',
+            'b2SpeciesID',
+            "b3StageID",
+            'b',
+            #missing data viarance
+            'sig.t25',
+            'sig.t50',
+            'sig.pp',
+            'sig.init',
+            'sig.orient',
+            'sig.tmax',
+            'sig.ppt'
           )
                         
 
@@ -52,7 +66,7 @@ model <- here("code",
               "02_analyses",
               "model3",
               "jags",
-              "model3_simple.R")
+              "model3.R")
 
 Sys.time()
 mod <- jagsUI::jags(data = data,
@@ -61,7 +75,7 @@ mod <- jagsUI::jags(data = data,
                             parameters.to.save = params,
                             parallel = TRUE,
                             n.chains = 3,
-                            n.iter = 20000,
+                            n.iter = 4000,
                             DIC = TRUE)
 Sys.time()
 
@@ -126,53 +140,62 @@ burn %>%
 
 # 
 # # Initials ----------------------------------------------------------------
+# # These are breaking the model right now
+## giving an error that node y is inconsistent with parents
+# b0.forest <- mod$mean$b0.forest
+# sig.forest <- mod$mean$sig.forest
+# b0.transect <- mod$mean$b0.transect
+# sig.transect <- mod$mean$sig.transect
+# b0.year <- c(mod$mean$b0.year[1:9], NA)
+# sig.year <- mod$mean$sig.year
+# b0 <- mod$mean$b0
+# b1TreatmentID <- c(NA, mod$mean$b1TreatmentID[2:length(mod$mean$b1TreatmentID)])
+# b2SpeciesID <- c(NA, mod$mean$b2SpeciesID[2:length(mod$mean$b2SpeciesID)])
+# b3StageID <- c(NA, mod$mean$b3StageID[2:length(mod$mean$b3StageID)])
+# b <- mod$mean$b
 # 
-b0.transect <- mod$mean$b0.transect
-sig.transect <- mod$mean$sig.transect
-b0.year <- c(mod$mean$b0.year[1:9], NA)
-sig.year <- mod$mean$sig.year
-b0 <- mod$mean$b0
-b2TreatmentID <- c(NA, mod$mean$b2TreatmentID[2:length(mod$mean$b2TreatmentID)])
-b1StageID <- c(NA, mod$mean$b1StageID[2:length(mod$mean$b1StageID)])
-b3SpeciesID <- c(NA, mod$mean$b3SpeciesID[2:length(mod$mean$b3SpeciesID)])
-b <- mod$mean$b
-
-# Set initials ------------------------------------------------------------
-
-inits <- list(list(b0.transect = b0.transect,
-                   sig.transect = sig.transect,
-                   b0.year = b0.year,
-                   sig.year = sig.year,
-                   b0 = b0,
-                   b2TreatmentID = b2TreatmentID,
-                   b1StageID = b1StageID,
-                   b3SpeciesID = b3SpeciesID,
-                   b = b),
-              list(b0.transect = b0.transect +runif(length(b0.transect)),
-                   sig.transect = sig.transect +runif(length(sig.transect)),
-                   b0.year = b0.year + runif(length(b0.year)),
-                   sig.year = sig.year + runif(length(sig.year)),
-                   b0 = b0 + runif(length(b0)),
-                   b2TreatmentID =  b2TreatmentID +runif(length(b2TreatmentID)),
-                   b1StageID = b1StageID +runif(length(b1StageID)),
-                   b3SpeciesID = b3SpeciesID + runif(length(b3SpeciesID)),
-                   b = b + runif(length(b))),
-              list(b0.transect = b0.transect -runif(length(b0.transect)),
-                   sig.transect = sig.transect +runif(length(sig.transect)),
-                   b0.year = b0.year - runif(length(b0.year)),
-                   sig.year = sig.year + runif(length(sig.year)),
-                   b0 = b0 - runif(length(b0)),
-                   b2TreatmentID =  b2TreatmentID -runif(length(b2TreatmentID)),
-                   b1StageID = b1StageID -runif(length(b1StageID)),
-                   b3SpeciesID = b3SpeciesID - runif(length(b3SpeciesID)),
-                   b = b - runif(length(b))))
-
-
-saveRDS(inits,
-        file = here("monsoon",
-                    "01_whwonests",
-                    "model3",
-                    "inputs",
-                    "model3_inits.RDS"))
+# # Set initials ------------------------------------------------------------
+# 
+# inits <- list(list(b0.forest = b0.forest,
+#                    sig.forest = sig.forest,
+#                    b0.transect = b0.transect,
+#                    sig.transect = sig.transect,
+#                    b0.year = b0.year,
+#                    sig.year = sig.year,
+#                    b0 = b0,
+#                    b1TreatmentID = b1TreatmentID,
+#                    b2SpeciesID = b2SpeciesID,
+#                    b3StageID = b3StageID,
+#                    b = b),
+#               list(b0.forest = b0.forest +runif(length(b0.forest)),
+#                    sig.forest = sig.forest + runif(length(sig.forest)),
+#                    b0.transect = b0.transect +runif(length(b0.transect)),
+#                    sig.transect = sig.transect +runif(length(sig.transect)),
+#                    b0.year = b0.year + runif(length(b0.year)),
+#                    sig.year = sig.year + runif(length(sig.year)),
+#                    b0 = b0 + runif(length(b0)),
+#                    b1TreatmentID =  b1TreatmentID +runif(length(b1TreatmentID)),
+#                    b2SpeciesID = b2SpeciesID + runif(length(b2SpeciesID)),
+#                    b3StageID = b3StageID +runif(length(b3StageID)),
+#                    b = b + runif(length(b))),
+#               list(b0.forest = b0.forest -runif(length(b0.forest)),
+#                    sig.forest = sig.forest + runif(length(sig.forest)),
+#                    b0.transect = b0.transect -runif(length(b0.transect)),
+#                    sig.transect = sig.transect +runif(length(sig.transect)),
+#                    b0.year = b0.year - runif(length(b0.year)),
+#                    sig.year = sig.year + runif(length(sig.year)),
+#                    b0 = b0 - runif(length(b0)),
+#                    b1TreatmentID =  b1TreatmentID -runif(length(b1TreatmentID)),
+#                    b2SpeciesID = b2SpeciesID - runif(length(b2SpeciesID)),
+#                    b3StageID = b3StageID -runif(length(b3StageID)),
+#                    b = b - runif(length(b))))
+# 
+# 
+# saveRDS(inits,
+#         file = here("monsoon",
+#                     "01_whwonests",
+#                     "model3",
+#                     "inputs",
+#                     "model3_inits.RDS"))
 
 

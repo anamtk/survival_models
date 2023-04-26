@@ -96,89 +96,40 @@ yrep<- reshape2::melt(yreps) %>%
 #look not so good for final data - more 1s being predicted than 0s
 
 
-# Balanced Accuracy -------------------------------------------------------
+# Prediction accuracy -----------------------------------------------------
 
-#sensitivity = true positive/(true positive + false negative)
-#specificity = true negative/(true negative + false negative)
-#balanced accuracy = (sensitivity+specificity)/2
+mu.p <- as.data.frame(mod_GOF$mean$p.intkeep) %>%
+  rename("P" = 'mod_GOF$mean$p.intkeep')
 
-y1 <- y %>%
-  dplyr::select(-type) %>%
-  rename("Observed_fate" = "Fate_class")
+y_acc <- y %>%
+  bind_cols(mu.p) %>%
+  mutate(Fate_class = as.factor(Fate_class)) %>%
+  mutate(type = case_when((Fate_class == 0 & P >= .5) ~ "mis-0",
+                          (Fate_class == 0 & P < .5) ~ "match-0",
+                          (Fate_class == 1 & P >= 0.5) ~ "match-1",
+                          (Fate_class == 1 & P < 0.5) ~ "mis-1"))
 
-n.iter <- length(unique(yrep$Iteration))
 
-acc_df <- data.frame(matrix(NA,
-                            nrow = n.iter,
-                            ncol = 3))
+y_acc %>%
+  group_by(type) %>%
+  tally()
 
-colnames(acc_df) <- c("sensitivity", "specificity", "accuracy")
+#1s:
+228/228
+#0s:
+3/(3+89)
 
-for(i in 1:n.iter){
-  acc_df[i,] <- accuracy_fun(yrep, y1, "Nest_ID", iteration.num = i)
-}
-
-(m2_acc <- acc_df %>%
-    pivot_longer(1:3,
-                 names_to = "metric",
-                 values_to = "value") %>%
-    mutate(metric = factor(metric, levels = c("sensitivity", 
-                                              "specificity", 
-                                              "accuracy"))) %>%
-    ggplot(aes(x = metric, y = value)) +
+(mod2_acc_plot <- ggplot(y_acc, aes(x = Fate_class, y = P)) +
+    geom_hline(yintercept = 0.5, linetype = 2) +
     geom_boxplot() +
-    ylim(0, 1))
-
-
-#Across all data
-y2 <- as.data.frame(data$y) %>%
-  mutate(Nest_ID = 1:n()) %>%
-  pivot_longer(1:15,
-               names_to = "Interval",
-               values_to = "Fate_class") %>%
-  filter(!is.na(Fate_class)) %>%
-  mutate(type = "Observed")  %>%
-  unite(col = "Nest_interval", 
-        c("Interval", "Nest_ID"),
-        remove = T) %>%
-  rename("Observed_fate" = "Fate_class")
-
-#extract the yreps, which for this model, which is an array of 
-# iterations, nests, visits to nests, or a 3-D matrix
-yreps2 <- mod_GOF$sims.list$yrep
-
-#Using the melt function from reshape2 package, turn the 3-D matrix
-#into a dataframe with a column for iteration ID, nest ID, and interval ID
-yrep2<- reshape2::melt(yreps2) %>%
-  rename("Iteration" = "Var1",
-         "Nest_ID" = "Var2",
-         "Interval" = "Var3",
-         "Fate_class" = "value") %>%
-  mutate(type = "Simulated")  %>%
-  unite(col = "Nest_interval", 
-        c("Interval", "Nest_ID"),
-        remove = T) 
-
-acc_df2 <- data.frame(matrix(NA,
-                            nrow = n.iter,
-                            ncol = 3))
-
-colnames(acc_df2) <- c("sensitivity", "specificity", "accuracy")
-
-for(i in 1:n.iter){
-  acc_df2[i,] <- accuracy_fun(yrep2, y2, "Nest_interval", iteration.num = i)
-}
-
-(m2_acc2 <- acc_df2 %>%
-    pivot_longer(1:3,
-                 names_to = "metric",
-                 values_to = "value") %>%
-    mutate(metric = factor(metric, levels = c("sensitivity", 
-                                              "specificity", 
-                                              "accuracy"))) %>%
-    ggplot(aes(x = metric, y = value)) +
-    geom_boxplot() +
-    ylim(0, 1))
+    labs(x = "Observed fate",
+         y = "Predicted survival probability") +
+    annotate(geom = "text", 
+             x = 0.75, y = 0.45,
+             label = "3%") +
+    annotate(geom = "text", 
+             x = 2.25, y = 0.55,
+             label = "100%") )
 
 # AUC ---------------------------------------------------------------------
 

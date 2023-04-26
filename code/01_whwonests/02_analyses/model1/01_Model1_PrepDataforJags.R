@@ -61,14 +61,14 @@ Forests <- nests %>%
   distinct(Project_ID) %>%
   as_vector()
 
+#number of forests
 n.forests <- length(Forests)
 
 # Create covariates -------------------------------------------------------
 
-#the next sections create covariates that encompass the random
+#the next sections create variables that encompass the random
 # variables that group the data,
-# and covariates that are at the different spatial scales 
-# (e.g. tree density, nest location variables, forest treatment variables)
+# and covariates that relate to the environment
 
 # Random variables --------------------------------------------------------
 
@@ -79,27 +79,34 @@ Transect <- nests %>%
            Project_ID) %>%
   dplyr::select(Transect_ID2) %>%
   as_vector()
-Transect.num <- nums(Transect)
 
+#make numeric for the model
+Transect.num <- nums(Transect)
 
 #year as random effect - vector length of nests
 Year <- nests %>%
   distinct(Nest_ID, Year_located) %>%
   dplyr::select(Year_located) %>%
   as_vector()
+
+#make numeric for the model
 Year.num <- nums(Year)
 
-Nest.num <- 1:n.nests
-
+#forest random effect - vector of length of the 
+#number of transects (hierarchically centered)
 Forest <- nests %>%
   distinct(Transect_ID2, 
            Project_ID) %>%
   dplyr::select(Project_ID) %>%
-  as.vector()
+  as_vector()
 
+#make numeric for model
 Forest.num <- nums(Forest)
 
 # MIssing data variables --------------------------------------------------
+
+#vector length of number of nests of forest ID for
+#imputing the climate data
 
 Forest1 <- nests %>%
   distinct(Nest_ID,
@@ -107,10 +114,11 @@ Forest1 <- nests %>%
            Project_ID) %>%
   dplyr::select(Project_ID) %>%
   as_vector()
+
+#get taht in numeric for model
 Forest.ID <- nums(Forest1)
            
 # Nest and stand covariates -----------------------------------------------
-# **might be able to subset these based on previous literature**
 #select all covariates on nest survival
 nest_covs <- nests %>%
   dplyr::select(Nest_ID, Nest_Ht, 
@@ -119,6 +127,10 @@ nest_covs <- nests %>%
            a1000_areacv2, a1000_contag, a1000_np1, a1000_Ha, a1000_RxBu,
            meanTmax_C, meanPpt_mm) %>% 
   mutate_if(is.numeric, scale)  #center and scale continous variables
+
+#categorical covariates
+#set the base level to be the one with the 
+#most observations
 
 #Treatment covariate
 TreatmentID <- nest_covs %>%
@@ -133,9 +145,6 @@ n.trt <- length(unique(as.factor(TreatmentID)))
 #2 = burn
 #3 = harvest
 #4 = harvest burn
-
-#Nest-level covariates
-NestHt <- as.vector(nest_covs$Nest_Ht)
 
 ## Species categorical effect
 SpeciesID <- nest_covs %>%
@@ -154,11 +163,12 @@ n.species <- length(unique(as.factor(SpeciesID)))
 #4 = JUOC
 #5 = PSME
 
+#stage categorical effect
 nests %>%
   group_by(prevStage) %>%
   tally()
 
-Stage <- nests %>%
+StageID <- nests %>%
   mutate(StageID = case_when(prevStage == "N" ~ 1,
                              prevStage %in% c("I", "L") ~ 2,
                              TRUE ~ NA_real_)) %>%
@@ -168,35 +178,38 @@ Stage <- nests %>%
 
 n.stages <- 2
 
+#Nest-level covariates
+NestHt <- as.vector(nest_covs$Nest_Ht)
 InitDay <- as.vector(nest_covs$Init_day)
 cosOrientation <- as.vector(nest_covs$cosOrientation) 
-
 #Local covariates
 Trees2550 <- as.vector(nest_covs$Trees_2550)
 Trees50 <- as.vector(nest_covs$Trees_50)
 PercPonderosa <- as.vector(nest_covs$pPIPO)
-
-#landscape-scale covariates
+#climate covarites
 PPT <- as.vector(nest_covs$meanPpt_mm)
 Tmax <- as.vector(nest_covs$meanTmax_C)
+#landscape-scale covariates
 ForestCV <- as.vector(nest_covs$a1000_areacv2)
 Contag <- as.vector(nest_covs$a1000_contag)
 OpenNm <- as.vector(nest_covs$a1000_np1)
 LandHa <- as.vector(nest_covs$a1000_Ha)
 LandBu <- as.vector(nest_covs$a1000_RxBu)
 
-
 # Exposure time -----------------------------------------------------------
 
+#total amount of time each nest was surveyed
 t <- as.vector(nests$exposure)
 
 # Response vector ---------------------------------------------------------
 
 y <- nests  %>%
+  #set data to 1-0 for bernoulli
   mutate(survival = case_when(Fate_cat == "success" ~ 1,
                               Fate_cat == "failure" ~ 0,
                               TRUE ~ NA_real_)) %>%
   dplyr::select(survival) %>%
+  #make a vector
   as_vector()
 
 # Export as RDS -----------------------------------------------------------

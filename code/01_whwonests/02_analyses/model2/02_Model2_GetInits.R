@@ -33,17 +33,27 @@ data <- readRDS(here("data_outputs",
 
 params <- c(
             #Random covariate betas
+            'b0.forest',
             'b0.transect',
             'b0.year',
             'b0',
             #Variance/precision
-            'sig.nest',
+            'sig.forest',
             'sig.transect',
             'sig.year',
+            #covariates
             'b',
-            'b1StageID',
-            'b2TreatmentID',
-            'b3SpeciesID'
+            'b1TreatmentID',
+            'b2SpeciesID',
+            'b3StageID',
+            #missing data
+            'sig.t25',
+            'sig.t50',
+            'sig.pp',
+            'sig.init',
+            'sig.orient',
+            'sig.tmax',
+            'sig.ppt'
             )
 
 
@@ -57,7 +67,7 @@ model <- here("code",
               "model2.R")
 
 Sys.time()
-jags <- jagsUI::jags(data = data,
+mod <- jagsUI::jags(data = data,
                             inits = NULL,
                             model.file = model,
                             parameters.to.save = params,
@@ -66,11 +76,11 @@ jags <- jagsUI::jags(data = data,
                             n.iter = 4000,
                             DIC = TRUE)
 Sys.time()
-mcmcplot(jags$samples)
+mcmcplot(mod$samples)
 
 # Raftery -----------------------------------------------------------------
 
-raf <- raftery.diag(jags$samples)
+raf <- raftery.diag(mod$samples)
 
 names <- rownames(raf[[1]]$resmatrix)
 ch1 <- raf[[1]]$resmatrix[,2]
@@ -102,9 +112,9 @@ raf_all %>%
             max = max(iterations, 
                       na.rm = T)/3)
 # A tibble: 1 × 3
-# iterations_90 iterations_95     max
-# <dbl>         <dbl>   <dbl>
-#   1         9398.        14306. 110171.
+# iterations_90 iterations_95   max
+# <dbl>         <dbl> <dbl>
+#   1         15705         20230 48540
 
 bu1 <- raf[[1]]$resmatrix[,1]
 bu2 <- raf[[2]]$resmatrix[,1]
@@ -128,44 +138,52 @@ burn %>%
 # 
 # # Initials ----------------------------------------------------------------
 # 
- b0.transect <- jags$mean$b0.transect
- sig.transect <- jags$mean$sig.transect
- b0.year <- c(jags$mean$b0.year[1:9], NA)
- sig.year <- jags$mean$sig.year
- b0 <- jags$mean$b0
- b1StageID <- c(NA, jags$mean$b1StageID[2:length(jags$mean$b1StageID)])
- b2TreatmentID <- c(NA, jags$mean$b2TreatmentID[2:length(jags$mean$b2TreatmentID)])
- b3SpeciesID <- c(NA, jags$mean$b3SpeciesID[2:length(jags$mean$b3SpeciesID)])
- b <- jags$mean$b
+b0.forest <- mod$mean$b0.forest
+sig.forest <- mod$mean$sig.forest
+b0.transect <- mod$mean$b0.transect
+sig.transect <- mod$mean$sig.transect
+b0.year <- c(mod$mean$b0.year[1:9], NA)
+sig.year <- mod$mean$sig.year
+b0 <- mod$mean$b0
+b1TreatmentID <- c(NA, mod$mean$b1TreatmentID[2:length(mod$mean$b1TreatmentID)])
+b2SpeciesID <- c(NA, mod$mean$b2SpeciesID[2:length(mod$mean$b2SpeciesID)])
+b3StageID <- c(NA, mod$mean$b3StageID[2:length(mod$mean$b3StageID)])
+b <- mod$mean$b
 # 
 # # Set initials ------------------------------------------------------------
 # 
-inits <- list(list(b0.transect = b0.transect,
+inits <- list(list(b0.forest = b0.forest,
+                   sig.forest = sig.forest,
+                   b0.transect = b0.transect,
                    sig.transect = sig.transect,
                    b0.year = b0.year,
                    sig.year = sig.year,
                    b0 = b0,
-                   b1StageID = b1StageID,
-                   b2TreatmentID = b2TreatmentID,
-                   b3SpeciesID = b3SpeciesID,
+                   b1TreatmentID = b1TreatmentID,
+                   b2SpeciesID = b2SpeciesID,
+                   b3StageID = b3StageID,
                    b = b),
-              list(b0.transect = b0.transect +runif(length(b0.transect)),
+              list(b0.forest = b0.forest + runif(length(b0.forest)),
+                   sig.forest = sig.forest + runif(length(sig.forest)),
+                   b0.transect = b0.transect +runif(length(b0.transect)),
                    sig.transect = sig.transect +runif(length(sig.transect)),
                    b0.year = b0.year + runif(length(b0.year)),
                    sig.year = sig.year + runif(length(sig.year)),
                    b0 = b0 + runif(length(b0)),
-                   b2TreatmentID =  b2TreatmentID +runif(length(b2TreatmentID)),
-                   b1StageID = b1StageID +runif(length(b1StageID)),
-                   b3SpeciesID = b3SpeciesID + runif(length(b3SpeciesID)),
+                   b1TreatmentID =  b1TreatmentID +runif(length(b1TreatmentID)),
+                   b3StageID = b3StageID +runif(length(b3StageID)),
+                   b2SpeciesID = b2SpeciesID + runif(length(b2SpeciesID)),
                    b = b + runif(length(b))),
-              list(b0.transect = b0.transect -runif(length(b0.transect)),
+              list(b0.forest = b0.forest - runif(length(b0.forest)),
+                   sig.forest = sig.forest + runif(length(sig.forest)),
+                   b0.transect = b0.transect -runif(length(b0.transect)),
                    sig.transect = sig.transect +runif(length(sig.transect)),
                    b0.year = b0.year - runif(length(b0.year)),
                    sig.year = sig.year + runif(length(sig.year)),
                    b0 = b0 - runif(length(b0)),
-                   b2TreatmentID =  b2TreatmentID -runif(length(b2TreatmentID)),
-                   b1StageID = b1StageID -runif(length(b1StageID)),
-                   b3SpeciesID = b3SpeciesID - runif(length(b3SpeciesID)),
+                   b1TreatmentID =  b1TreatmentID -runif(length(b1TreatmentID)),
+                   b3StageID = b3StageID -runif(length(b3StageID)),
+                   b2SpeciesID = b2SpeciesID - runif(length(b2SpeciesID)),
                    b = b - runif(length(b))))
 
 

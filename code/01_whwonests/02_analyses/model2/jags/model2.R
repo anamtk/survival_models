@@ -89,7 +89,7 @@ model {
       
       #temp and ppt are dependent on forest location
       Tmax[i, j] ~ dnorm(mu.tmax[Forest.ID[i]], tau.tmax[Forest.ID[i]])
-      PPT[i,j]~ dnorm(mu.tmax[Forest.ID[i]], tau.tmax[Forest.ID[i]])
+      PPT[i,j]~ dnorm(mu.ppt[Forest.ID[i]], tau.ppt[Forest.ID[i]])
       
       #-------------------------------------## 
       # Model Goodness-of-fit objects ###
