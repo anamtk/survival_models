@@ -48,10 +48,10 @@ parms <- c("b[4]", "b[5]",
            "b[12]", "b[13]", "b[14]",           
            "b[15]", "b[16]", "b[17]",  
            "b[18]",
-           'b1StageID[2]',
-           "b2TreatmentID[2]","b2TreatmentID[3]",
-           "b2TreatmentID[4]", "b3SpeciesID[2]",  
-           "b3SpeciesID[3]","b3SpeciesID[4]","b3SpeciesID[5]")
+           'b3StageID[2]',
+           "b1TreatmentID[2]","b1TreatmentID[3]",
+           "b1TreatmentID[4]", "b2SpeciesID[2]",  
+           "b2SpeciesID[3]","b2SpeciesID[4]","b2SpeciesID[5]")
 
 # "U", "B", "H", "HB"
 #"PIPO", "Abies", "POTR5", "JUOC", "PSME"
@@ -59,21 +59,21 @@ parms <- c("b[4]", "b[5]",
 mod3_est <- as.data.frame(model3_sum$quantiles) %>%
   rownames_to_column(var = "parameter") %>%
   filter(parameter %in% parms) %>%
-  mutate(parameter = case_when(parameter == "b1StageID[2]" ~ 
+  mutate(parameter = case_when(parameter == "b3StageID[2]" ~ 
                                  "Stage:Egg",
-                               parameter == 'b2TreatmentID[2]' ~ 
+                               parameter == 'b1TreatmentID[2]' ~ 
                                  'TreatmentType:Burn',
-                               parameter == "b2TreatmentID[3]" ~
+                               parameter == "b1TreatmentID[3]" ~
                                  "TreatmentType:Harvest",
-                               parameter == "b2TreatmentID[4]" ~
+                               parameter == "b1TreatmentID[4]" ~
                                  "TreatmentType:Harvest+Burn",
-                               parameter == "b3SpeciesID[2]" ~
+                               parameter == "b2SpeciesID[2]" ~
                                  "NestTree:Abies",
-                               parameter == "b3SpeciesID[3]" ~
+                               parameter == "b2SpeciesID[3]" ~
                                  "NestTree:Aspen",
-                               parameter == "b3SpeciesID[4]" ~
+                               parameter == "b2SpeciesID[4]" ~
                                  "NestTree:Juniper",
-                               parameter == "b3SpeciesID[5]" ~
+                               parameter == "b2SpeciesID[5]" ~
                                  "NestTree:DougFir",
                                parameter == "b[4]" ~ "NestHt",
                                parameter == "b[5]" ~ "NestOrientation",

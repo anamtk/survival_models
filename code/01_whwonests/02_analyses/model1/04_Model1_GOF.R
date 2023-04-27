@@ -158,5 +158,5 @@ as.data.frame(mod1_AUC) %>%
   ggplot() +
   geom_histogram(aes(x = mod1_AUC)) +
   geom_vline(xintercept = 0.96, linetype = 2) +
-  labs(title = "Total survey exposure, logit link"))
+  labs(title = "Total survey exposure, logit link") )
 

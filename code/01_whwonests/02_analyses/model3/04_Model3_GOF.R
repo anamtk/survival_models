@@ -135,22 +135,22 @@ y_acc %>%
 
 #accuary
 #0s:
+80/(80+12) #87%
 #1s:
-220/(220+8)
+224/(224+4) #98%
 
-(mod1_acc_plot <- ggplot(y_acc, aes(x = Fate_class, y = P)) +
+(mod3_acc_plot <- ggplot(y_acc, aes(x = Fate_class, y = P)) +
     geom_hline(yintercept = 0.5, linetype = 2) +
     geom_boxplot() +
     labs(x = "Observed fate",
-         y = "Predicted survival probability") )
+         y = "Predicted survival probability")  +
+    annotate(geom = "text", 
+             x = 0.75, y = 0.45,
+             label = "87%") +
+    annotate(geom = "text", 
+             x = 2.25, y = 0.55,
+             label = "98%"))
 
-ggplot(y_acc, aes(x = intervals, y = P, color = Fate_class)) +
-  geom_point()
-
-y_acc %>%
-  mutate(intervals = as.factor(intervals)) %>%
-  ggplot(aes(x = intervals, y = P, fill = Fate_class)) +
-  geom_boxplot()
 
 y_acc %>%
   group_by(Fate_class) %>%
@@ -164,8 +164,6 @@ y_acc %>%
 resp <- as.vector(data$y)
 
 iteration.num <- length(mod_GOF$sims.list$p1[,1])
-
-#EDITING FUNCTION HERE
 
 pred1 <- as.data.frame(t(mod_GOF$sims.list$p1))
 pred2 <- as.data.frame(t(mod_GOF$sims.list$p2))
@@ -187,6 +185,6 @@ as.data.frame(mod3_AUC) %>%
 (mod3_AUC_plot <- as.data.frame(mod3_AUC) %>%
   ggplot() +
   geom_histogram(aes(x = mod3_AUC)) +
-  geom_vline(xintercept = 0.79, linetype = 2) +
+  geom_vline(xintercept = 0.96, linetype = 2) +
   labs(title = "Custom probability, logit link"))
 

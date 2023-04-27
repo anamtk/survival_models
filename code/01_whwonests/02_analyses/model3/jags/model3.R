@@ -8,37 +8,52 @@ model{
   #Ana Miller-ter Kuile and Kiona Ogle
   #March 28, 2023
   
-  # This script outlines a nest survival model
-  # that has total nest survivals contingent on
-  # the fact that a nest lived or died throughout
-  # the nesting period.
-  # The goal of this model is to avoid some of the
-  # ill-fitting behaviours of the model that 
-  # models interval level data (y[i,j]) when
-  # very many of the y's are 1's while also allowing 
-  # there to be covariates that vary (eg. climate)
-  # throughout different visit intervals of the 
-  # nesting season
+  #Motivation for Survival Model
+  # This is a survival model that has total-census
+  # survival probabilities that depend on an individual living
+  # or dying throughout a series of visit intervals in which status
+  # was determined. Thus, while the model accounts for variation
+  # in drivers of survival throughout the census period, the 
+  # model relies on the distribution of the final fate data
+  # for an individual (y[i]) and total census survival probability
   
-  #Attributes of the model:
-  #-Data are nest fates at the end of the survey period (1-0),
+  # The goal of this model is to avoid some of the ill-fitting
+  # behaviors of a model that models interval level data 
+  # (y[i,j]), such as is employed via the Mayfield Method 
+  # (Mayfield 1975). 
+  # This is likely more important when a relatively large amount
+  # of the observation data are 1's (e.g. many individuals 
+  # survive or individuals are surveyed many times while they're 
+  # alive). This is a common data distribution for survival
+  # models in ecology
+  
+  #General attributes of the model:
+  #-Data are individual fates at the end of the survey period (1-0),
   ## which are Bernoulli distributed with survival probability, p
-  #- The model has conditional probabilities based on final nest
-  ## fate and the number of survey intervals that nest was observed in
-  #-These conditional probabilities are broken up between nests that
-  ## were only surveyed once and those that were surveyed > 1 time 
-  ## due since the conditional probability that y==0 and intervals>1
-  ## will break the code since it requires n.intervals[i]-1 to be >= 1
-  ## This requires that the dataset being imported into JAGS be sorted
-  ## so that all single-interval nests be the first set of nests
-  #-The model has random effects for nest nested within
-  ## transect (hierarchically centered) 
+  ## (broken into p1 and p2 in the model to account for individuals
+  ## that are surveyed 1 time and >1 time)
+  #- For single-survey individuals, survival probability is equivalent
+  ## to a total exposure model (ps[i]^t[i])
+  #- For multi-survey individuals, survival probability is dependent
+  ## on fates in a series of sub-survey periods by multiplying the 
+  ## survival probabilities from each of these survey intervals. 
+  ## We calculate the unnormalized probability 
+  ## of an individual surviving (q1[i]) or dying (q0[i]). Then, we 
+  ## normalize this probability to get the normalized probability of 
+  ## surviving by dividing q1[i]/(q1[i] + q0[i])
+  #- This model requires that the dataset being imported into JAGS be sorted
+  ## so that all single-interval individuals be the first set of individuals
+  
+  #WHWO Nest Survival specifics of the model:
+  #-The model has random effects for transect nested within 
+  ## forest nested within the overall intercept(hierarchically centered) 
   ## and year (sum-to-zero) that are identifiable
   #-The model includes a list of covariates that are dependent
-  ## on nest location, including habitat variables and 
-  ## climate variables, at multiple scales
+  ## on nest location, and do not change throughout the season,
+  # including habitat variables at multiple scales
   #-The model includes several covariates that are dependent on
-  ## the nest and survey interval 
+  ## the nest and survey interval, including temperature and 
+  ## development stage of the nest contents
   #-Imputed missing covariate values when missing data 
   ## are minimal
   
@@ -61,8 +76,11 @@ model{
     
     #regardless of final fate (1-0), the probability of
     #surviving just one interval is just the probability
-    #of survivng that interval
+    #of survivng that interval:
     p1[i] <-  p.int[i,1]
+    
+    #this part of the model is equivalent to a
+    # total exposure model
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###
@@ -90,6 +108,7 @@ model{
     # looping through the nests that had more than
     # one survey interval
     
+    #Unnormalized probabilities of survival and failure
     #If the nest did survive a set of intervals, it's
     # survival probability is the product of all
     # those intervals
@@ -97,30 +116,17 @@ model{
     q1[i] <- prod(p.int[i, 1:n.t[i]])
     
     #IF the nest did not survive at the end and was 
-    # surveyed for more than one interal, it's survival
-    # probability is 1 - all the periods it did survive
+    # surveyed for more than one interval, it's survival
+    # probability is the product of all the periods it did survive
     # minus the "mortality probability (1-survival) for
     # the last interval
     #y = 0, n.interval > 1
-    # q0[i] <-  1 - prod(p.int[i, 1:(n.t[i]-1)]) *
-    #   (1 - p.int[i, n.t[i]])
-    
     q0[i] <- prod(p.int[i, 1:(n.t[i]-1)]) *
       (1 - p.int[i, n.t[i]])
     
-    #total nest survival is based on 
-    #the "if-else" of the above
-    #two conditions
-    #if a condition isn't met, that part
-    # will become zero added to the other probabilities
-    
-    #only one interval and died, p1
-    # p2[i] <- 
-    #   #lived through all intervals, p_2
-    #   (y2[i]==1)*pa[i] +
-    #   #died in an interval after the first one , p3
-    #   (y2[i] == 0)*pb[i]
-    
+    #For individuals with >1 interval, the normalized
+    #survival probability is the probability of surviving
+    # divided by the probability of surviving and dying
     p2[i] <- q1[i]/(q1[i] + q0[i])
     
     #-------------------------------------## 
@@ -144,8 +150,8 @@ model{
   for(i in 1:n.nests){ #all nests in dataset
     for(j in 1:n.t[i]){ #interval # for nest i
       
-      #each interval survival, p.int, is that daily
-      #survival raised to the power of the number
+      #each interval survival, p.int, is daily survival 
+      #for that interval raised to the power of the number
       # of days in that interval
       p.int[i,j] <-  pow(ps[i,j], t[i,j])
       
@@ -196,8 +202,6 @@ model{
       
       #Some covariate data are msising, so use the following to model those 
       # missing data
-      #Basing these distributions off of the distributions of the 
-      # data for each variable
       
       #temp is dependent on forest location
       Tmax[i,j] ~ dnorm(mu.tmax[Forest.ID[i]], tau.tmax[Forest.ID[i]])
