@@ -99,11 +99,11 @@ covs <- kelp %>%
   mutate_if(is.numeric, scale) #center and scale continuous covariates
   
 
-SST <- covs$sst_mean
-WavePower <- covs$wave_p_mean
-Stipes <- covs$Stipe_num
-Diam <- covs$Max_Diam_1_cm
-Depth <- covs$Depth_m
+SST <- as.vector(covs$sst_mean)
+WavePower <- as.vector(covs$wave_p_mean)
+Stipes <- as.vector(covs$Stipe_num)
+Diam <- as.vector(covs$Max_Diam_1_cm)
+Depth <- as.vector(covs$Depth_m)
 
 covs %>%
   group_by(Substrate_Code) %>%

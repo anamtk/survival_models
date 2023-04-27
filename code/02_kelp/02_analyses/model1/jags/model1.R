@@ -44,7 +44,7 @@ model{
       b[3]*Stipes[i] +
       b[4]*Diam[i] +
       b[5]*Depth[i] +
-      b6[SubstrateID[i]]
+      b6Substrate[SubstrateID[i]]
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###
@@ -65,7 +65,7 @@ model{
     #Basing these distributions off of the distributions of the 
     # data for each variable
     Depth[i] ~ dnorm(mu.d, tau.d)
-    MaxDiam[i] ~dnorm(mu.md, tau.md)
+    Diam[i] ~dnorm(mu.md, tau.md)
 
   }
   
@@ -80,7 +80,7 @@ model{
   #Nested spatial random structure with hierarchical centering: 
   #transects within overall site
   for(t in 1:n.transects){
-    b0.transect[t] ~ dnorm(b0.site[Site.num[t]], tau.site)
+    b0.transect[t] ~ dnorm(b0.site[Site.num[t]], tau.transect)
   }
   
   #sites within overall intercept

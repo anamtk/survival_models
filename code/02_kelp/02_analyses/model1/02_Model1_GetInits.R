@@ -26,9 +26,9 @@ for(i in package.list){library(i, character.only = T)}
 # Load Data ---------------------------------------------------------------
 # 
 # #load the formatted data for the JAGS model
-data <- readRDS(here("data_outputs", 
-                     '03_JAGS_input_data',
-                     "01_whwonests",
+data <- readRDS(here("data_outputs",
+                     "02_kelp",
+                     "03_JAGS_input_data",
                      "mod1_JAGS_input_data.RDS"))
 
 # Parameters to save ------------------------------------------------------
@@ -37,33 +37,21 @@ data <- readRDS(here("data_outputs",
 params <- c(
             #Random covariate betas
             'b0.transect',
-            'b0.forest',
-            'b0.year',
+            'b0.site',
             'b0',
             #Variance/precision
             'sig.transect',
-            'sig.forest',
-            'sig.year',
+            'sig.site',
             #covariates
-            'b1TreatmentID',
-            'b2SpeciesID',
-            'b3StageID',
             'b',
-            #missing data
-            'sig.t25',
-            'sig.t50',
-            'sig.pp',
-            'sig.init',
-            'sig.orient',
-            'sig.tmax',
-            'sig.ppt'
+            'b6'
             )
 
 
 # JAGS model --------------------------------------------------------------
 
 model <- here("code", 
-              "01_whwonests",
+              "02_kelp",
               "02_analyses",
               "model1",
               "jags",
@@ -80,7 +68,6 @@ mod <- jagsUI::jags(data = data,
 
 mcmcplot(mod$samples)
 
-gelman.diag(mod$samples, multivariate = F)
 # Raftery -----------------------------------------------------------------
 
 raf <- raftery.diag(mod$samples)
@@ -117,7 +104,7 @@ raf_all %>%
 # A tibble: 1 × 3
 # iterations_90 iterations_95   max
 # <dbl>         <dbl> <dbl>
-#   1          8738        12607. 67012
+#   1         8500.         12291 27416
 
 bu1 <- raf[[1]]$resmatrix[,1]
 bu2 <- raf[[2]]$resmatrix[,1]
@@ -136,63 +123,47 @@ burn <- as.data.frame(cbind(names, bu1, bu2, bu3)) %>%
 
 burn %>%
   summarise(max(iterations, na.rm = T))
-#182
+#72
 
 # 
 # # Initials ----------------------------------------------------------------
 # 
-b0.forest <- mod$mean$b0.forest
-sig.forest <- mod$mean$sig.forest
+b0.site <- mod$mean$b0.site
+sig.site <- mod$mean$sig.site
 b0.transect <- mod$mean$b0.transect
 sig.transect <- mod$mean$sig.transect
-b0.year <- c(mod$mean$b0.year[1:9], NA)
-sig.year <- mod$mean$sig.year
 b0 <- mod$mean$b0
-b1TreatmentID <- c(NA, mod$mean$b1TreatmentID[2:length(mod$mean$b1TreatmentID)])
-b2SpeciesID <- c(NA, mod$mean$b2SpeciesID[2:length(mod$mean$b2SpeciesID)])
-b3StageID <- c(NA, mod$mean$b3StageID[2:length(mod$mean$b3StageID)])
+b6Substrate <- c(NA, mod$mean$b6Substrate[2:length(mod$mean$b6Substrate)])
 b <- mod$mean$b
 
 # # Set initials ------------------------------------------------------------
 
-inits <- list(list(b0.forest = b0.forest,
-                   sig.forest = sig.forest,
+inits <- list(list(b0.site = b0.site,
+                   sig.site = sig.site,
                    b0.transect = b0.transect,
                    sig.transect = sig.transect,
-                   b0.year = b0.year,
-                   sig.year = sig.year,
                    b0 = b0,
-                   b1TreatmentID = b1TreatmentID,
-                   b2SpeciesID = b2SpeciesID,
-                   b3StageID = b3StageID,
+                   b6Substrate = b6Substrate,
                    b = b),
-              list(b0.forest = b0.forest + runif(length(b0.forest), min = 0, max = 1),
-                   sig.forest = sig.forest + runif(length(sig.forest), min = 0, max = 1),
+              list(b0.site = b0.site + runif(length(b0.site), min = 0, max = 1),
+                   sig.site = sig.site + runif(length(sig.site), min = 0, max = 1),
                    b0.transect = b0.transect +runif(length(b0.transect), min = 0, max = 1),
                    sig.transect = sig.transect +runif(length(sig.transect), min = 0, max = 1),
-                   b0.year = b0.year + runif(length(b0.year), min = 0, max = 1),
-                   sig.year = sig.year + runif(length(sig.year), min = 0, max = 1),
                    b0 = b0 + runif(length(b0), min = 0, max = 1),
-                   b1TreatmentID =  b1TreatmentID +runif(length(b1TreatmentID), min = 0, max = 1),
-                   b2SpeciesID = b2SpeciesID + runif(length(b2SpeciesID), min = 0, max = 1),
-                   b3StageID = b3StageID + runif(length(b3StageID), min = 0, max = 1),
+                   b6Substrate =  b6Substrate +runif(length(b6Substrate), min = 0, max = 1),
                    b = b + runif(length(b), min = 0, max = 1)),
-              list(b0.forest = b0.forest - runif(length(b0.forest), min = 0, max = 1),
-                   sig.forest = sig.forest + runif(length(sig.forest), min = 0, max = 1),
+              list(b0.site = b0.site - runif(length(b0.site), min = 0, max = 1),
+                   sig.site = sig.site + runif(length(sig.site), min = 0, max = 1),
                    b0.transect = b0.transect -runif(length(b0.transect), min = 0, max = 1),
                    sig.transect = sig.transect +runif(length(sig.transect), min = 0, max = 1),
-                   b0.year = b0.year - runif(length(b0.year), min = 0, max = 1),
-                   sig.year = sig.year + runif(length(sig.year), min = 0, max = 1),
                    b0 = b0 - runif(length(b0), min = 0, max = 1),
-                   b1TreatmentID =  b1TreatmentID -runif(length(b1TreatmentID), min = 0, max = 1),
-                   b2SpeciesID = b2SpeciesID - runif(length(b2SpeciesID), min = 0, max = 1),
-                   b3StageID = b3StageID - runif(length(b3StageID), min = 0, max = 1),
+                   b6Substrate =  b6Substrate -runif(length(b6Substrate), min = 0, max = 1),
                    b = b - runif(length(b), min = 0, max = 1)))
 
 # 
  saveRDS(inits, 
          file = here("monsoon",
-                     "01_whwonests",
+                     "02_kelp",
                      "model1",
                      "inputs",
                      "model1_inits.RDS"))
