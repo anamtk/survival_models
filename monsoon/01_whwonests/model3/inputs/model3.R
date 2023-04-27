@@ -94,7 +94,7 @@ model{
     # survival probability is the product of all
     # those intervals
     #y = 1
-    pa[i] <- prod(p.int[i, 1:n.t[i]])
+    q1[i] <- prod(p.int[i, 1:n.t[i]])
     
     #IF the nest did not survive at the end and was 
     # surveyed for more than one interal, it's survival
@@ -102,7 +102,10 @@ model{
     # minus the "mortality probability (1-survival) for
     # the last interval
     #y = 0, n.interval > 1
-    pb[i] <-  1 - prod(p.int[i, 1:(n.t[i]-1)]) *
+    # q0[i] <-  1 - prod(p.int[i, 1:(n.t[i]-1)]) *
+    #   (1 - p.int[i, n.t[i]])
+    
+    q0[i] <- prod(p.int[i, 1:(n.t[i]-1)]) *
       (1 - p.int[i, n.t[i]])
     
     #total nest survival is based on 
@@ -112,11 +115,13 @@ model{
     # will become zero added to the other probabilities
     
     #only one interval and died, p1
-    p2[i] <- 
-      #lived through all intervals, p_2
-      (y2[i]==1)*pa[i] +
-      #died in an interval after the first one , p3
-      (y2[i] == 0)*pb[i]
+    # p2[i] <- 
+    #   #lived through all intervals, p_2
+    #   (y2[i]==1)*pa[i] +
+    #   #died in an interval after the first one , p3
+    #   (y2[i] == 0)*pb[i]
+    
+    p2[i] <- q1[i]/(q1[i] + q0[i])
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###

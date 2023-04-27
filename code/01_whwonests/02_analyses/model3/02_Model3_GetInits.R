@@ -115,9 +115,9 @@ raf_all %>%
             max = max(iterations, 
                       na.rm = T)/3)
 # A tibble: 1 × 3
-# iterations_90 iterations_95    max
-# <dbl>         <dbl>  <dbl>
-#   1          6552          8344 91025
+# iterations_90 iterations_95   max
+# <dbl>         <dbl> <dbl>
+#   1         7584.         9474. 24324
 
 bu1 <- raf[[1]]$resmatrix[,1]
 bu2 <- raf[[2]]$resmatrix[,1]
@@ -136,7 +136,7 @@ burn <- as.data.frame(cbind(names, bu1, bu2, bu3)) %>%
 
 burn %>%
   summarise(max(iterations, na.rm = T))
-#643
+#66
 
 # 
 # # Initials ----------------------------------------------------------------

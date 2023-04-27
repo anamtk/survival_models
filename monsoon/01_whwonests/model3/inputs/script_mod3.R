@@ -100,7 +100,7 @@ mod <- jagsUI::jags(data = data_list,
                         parallel = TRUE,
                         n.chains = 3,
                         n.burnin = 1000,
-                        n.iter = 92000,
+                        n.iter = 26000,
                         DIC = TRUE)
 
 #save as an R data object
