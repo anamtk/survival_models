@@ -79,7 +79,7 @@ model {
     #Basing these distributions off of the distributions of the 
     # data for each variable
     Depth[i] ~ dnorm(mu.d, tau.d)
-    MaxDiam[i] ~dnorm(mu.md, tau.md)
+    Diam[i] ~dnorm(mu.md, tau.md)
     
   }
   
@@ -94,7 +94,7 @@ model {
   #Nested spatial random structure with hierarchical centering: 
   #transects within forests
   for(t in 1:n.transects){
-    b0.transect[t] ~ dnorm(b0.site[Site.num[t]], tau.site)
+    b0.transect[t] ~ dnorm(b0.site[Site.num[t]], tau.transect)
   }
   
   #forests within overall intercept
@@ -124,10 +124,10 @@ model {
   #level as a reference to compare effects of others to
   #cell-reference approach:
   for(s in 2:n.substrates){
-    b6Substrate[s] ~ dnorm(0, 1E-2)
+    b6[s] ~ dnorm(0, 1E-2)
   }
   
-  b6Substrate[1] <- 0
+  b6[1] <- 0
   
   
 

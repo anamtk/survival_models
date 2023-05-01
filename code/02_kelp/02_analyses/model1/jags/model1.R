@@ -44,7 +44,7 @@ model{
       b[3]*Stipes[i] +
       b[4]*Diam[i] +
       b[5]*Depth[i] +
-      b6Substrate[SubstrateID[i]]
+      b6[SubstrateID[i]]
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###
@@ -111,10 +111,10 @@ model{
   #level as a reference to compare effects of others to
   #cell-reference approach:
   for(s in 2:n.substrates){
-    b6Substrate[s] ~ dnorm(0, 1E-2)
+    b6[s] ~ dnorm(0, 1E-2)
   }
   
-  b6Substrate[1] <- 0
+  b6[1] <- 0
   
   #IMPUTING DATA PRIORS
   #Priors for missing covariate mean and precision

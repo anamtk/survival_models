@@ -1,8 +1,8 @@
-# Nest survival data prep - full interval model1
+# Kelp survival data prep - full interval model1
 # Ana Miller-ter Kuile
 # March 31, 2023
 
-# prepping data for the model of nest survival where data are
+# prepping data for the model of kelp survival where data are
 # derived only for the full survey interval
 
 # Load packages -----------------------------------------------------------
@@ -158,4 +158,11 @@ saveRDS(all_data, here("data_outputs",
                        "02_kelp",
                        "03_JAGS_input_data",
                       "mod1_JAGS_input_data.RDS"))
+
+saveRDS(all_data, 
+        file = here("monsoon",
+                    "02_kelp",
+                    "model1",
+                    "inputs",
+                    "mod1_JAGS_input_data.RDS.RDS"))
 

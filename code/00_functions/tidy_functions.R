@@ -271,4 +271,45 @@ z_pvalue <- function(x, name, number){
   return(df)
 }
 
+
+# Covariate matrix function -----------------------------------------------
+
+#get a scaled matrix for each interval for each plant
+int_cov <- function(variable){
+  matrix <- all_kelp2 %>%
+    #scale the variable of interest
+    mutate(var1 = scale({{variable}})) %>%
+    #select the variables you want
+    dplyr::select(Card_number, Visit_interval, var1) %>%
+    #put these into a long format
+    pivot_wider(names_from = Visit_interval,
+                values_from = var1) %>%
+    #make the column name the card number
+    column_to_rownames(var = "Card_number") %>%
+    #set as matrix for jags
+    as.matrix()
+  
+  #return the matrix from the function all
+  return(matrix)
+}
+
+
+# Fixed covariate data prep function --------------------------------------
+
+#Fixed covariates for plants
+#these should be a plant length vector
+fixed_covs <- function(variable){
+  vector <- all_kelp2 %>%
+    #select each distinct plant and its immutable covariate
+    distinct(Card_number, {{variable}}) %>%
+    #scale the covariate
+    mutate(var1 = scale({{variable}})) %>%
+    #select the variable
+    dplyr::select(var1) %>%
+    #make it a vector
+    as_vector()
+  
+  return(vector)
+}
+
 #END SCRIPT
