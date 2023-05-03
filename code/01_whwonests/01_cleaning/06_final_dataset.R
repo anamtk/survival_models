@@ -23,11 +23,13 @@ for(i in package.list){library(i, character.only = T)}
 # Load data ---------------------------------------------------------------
 
 climate <- read.csv(here("data_outputs",
+                         "01_whwonests",
                          "01_cleaning",
                          "05_dailyWeather_nests.csv"))
 
   
 nests <- read.csv(here('data_outputs', 
+                       "01_whwonests",
                  "01_cleaning", 
                  "04_nest_local_land_data.csv"))
 
@@ -110,6 +112,7 @@ nests_int2 <- first_obs %>%
                                   TRUE ~ Julian_start))
 
 write.csv(nests_int2, here("data_outputs",
+                           "01_whwonests",
                "02_analysis_ready",
                "01_whwonests",
                "interval_models_nest_data.csv"))
@@ -153,6 +156,7 @@ nests_full <- nests_int2 %>%
   left_join(stage, by = "Nest_ID")
 
 write.csv(nests_full, here("data_outputs",
+                           "01_whwonests",
                            "02_analysis_ready",
                            "01_whwonests",
                            "full_survey_model_nest_data.csv"))

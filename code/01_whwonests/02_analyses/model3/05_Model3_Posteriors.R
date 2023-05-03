@@ -94,6 +94,7 @@ mod3_est <- as.data.frame(model3_sum$quantiles) %>%
   mutate(Model = "Model3_CustomProbLogit")
 
 write.csv(mod3_est, here("data_outputs",
+                         "01_whwonests",
                          "04_posterior_summaries",
                          "Model3_posteriors.csv"))
 

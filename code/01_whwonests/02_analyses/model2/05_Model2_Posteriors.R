@@ -93,6 +93,7 @@ mod2_est <- as.data.frame(model2_sum$quantiles) %>%
   mutate(Model = "Model2_IntervalData")
 
 write.csv(mod2_est, here("data_outputs",
+                         "01_whwonests",
                          "04_posterior_summaries",
                          "Model2_posteriors.csv"))
 

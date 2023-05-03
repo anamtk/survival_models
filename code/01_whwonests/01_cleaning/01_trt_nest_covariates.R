@@ -26,12 +26,14 @@ for(i in package.list){library(i, character.only = T)}
 #need: locations dataframe
 
 locations <- read_xlsx(here("data_raw",
+                            "01_whwonests",
                             "bird_data",
                             "Birds01_nest_locations.xlsx"))
 
 
 # FACTS dataset
 facts <- read_xlsx(here("data_raw",
+                        "01_whwonests"
                         "bird_data",
                         "Birds07_nest_FACTS.xlsx"))
 
@@ -158,6 +160,7 @@ locs2 %>%
 # Export ------------------------------------------------------------------
 
 write.csv(locs2, here("data_outputs", 
+                      "01_whwonests",
                       "01_cleaning",
                       "01_Nest_trt_covs.csv"))
 

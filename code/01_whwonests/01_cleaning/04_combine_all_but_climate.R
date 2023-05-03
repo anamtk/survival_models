@@ -20,34 +20,39 @@ for(i in package.list){library(i, character.only = T)}
 
 #temp and precip functions
 source(here("code",
-            "functions",
+            "00_functions",
             "tidy_functions.R"))
 
 # Load data ---------------------------------------------------------------
 
 #get the dataframe with all the treatment info for each nest
 trt_covs <- read.csv(here("data_outputs",
+                          "01_whwonests",
                           "01_cleaning",
                           "01_Nest_trt_covs.csv"))
 
 #tree data compilation, including abundance and sizes of trees and snags
 tree_data <- read.csv(here("data_outputs",
+                           "01_whwonests",
                                 "01_cleaning",
                                 "02_nest_tree_densities.csv"))
 
 
 #landscape variables
 land <- read.csv(here("data_outputs",
+                      "01_whwonests",
                       "01_cleaning",
                       "03_nest_landscape_1000_covariates.csv"))
 
 #nest locations DF
 fates <- read_xlsx(here("data_raw",
+                        "01_whwonests"
                         "bird_data",
                         "Birds03_nest_fates.xlsx"))
 
 #Individual nest visits DF
 visits <- read_xlsx(here("data_raw",
+                         "01_whwonests",
                          "bird_data",
                          "Birds02_nest_visits.xlsx"))
  
@@ -257,6 +262,7 @@ data <- nests6 %>%
 
 write.csv(data, 
           here('data_outputs', 
+               "01_whwonests",
                "01_cleaning", 
                "04a_nest_locations_dates.csv"))
 

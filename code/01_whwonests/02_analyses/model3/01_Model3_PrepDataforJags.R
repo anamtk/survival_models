@@ -22,8 +22,8 @@ source(here("code",
 # Load data ---------------------------------------------------------------
 
 nests <- read.csv(here("data_outputs",
-                       "02_analysis_ready",
                        "01_whwonests", 
+                       "02_analysis_ready",
                        "interval_models_nest_data.csv"))
 
 
@@ -311,7 +311,7 @@ all_data <- list(#Data count variables
                  t = t)
 
 saveRDS(all_data, here("data_outputs", 
-                       '03_JAGS_input_data',
                        "01_whwonests",
+                       '03_JAGS_input_data',
                        "mod3_JAGS_input_data.RDS"))
 

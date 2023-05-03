@@ -94,6 +94,7 @@ mod1_est <- as.data.frame(model1_sum$quantiles) %>%
   
 
 write.csv(mod1_est, here("data_outputs",
+                         "01_whwonests",
                "04_posterior_summaries",
                "Model1_posteriors.csv"))
 

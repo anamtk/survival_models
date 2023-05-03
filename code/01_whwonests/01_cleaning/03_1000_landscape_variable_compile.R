@@ -19,25 +19,29 @@ for(i in package.list){library(i, character.only = T)}
 
 #custom functions 
 source(here("code", 
-            "functions", 
+            "00_functions", 
             "tidy_functions.R"))
 
 
 # Load data ---------------------------------------------------------------
 
 emfwor <- read.csv(here("data_raw",
+                        "01_whwonests",
                         "landscape_data",
                         "EMFWOR_LF-based_IPM_NestSurv_data_n68_nests.csv"))
 
 emmaor <- read.csv(here("data_raw",
+                        "01_whwonests",
                         "landscape_data", 
                         "EMMAOR_LF-based_IPM_NestSurv_data_n149_nests.csv"))
 
 empaid <- read.csv(here("data_raw",
+                        "01_whwonests",
                         "landscape_data", 
                         "EMPAID_LF-based_IPM_NestSurv_data_n146_nests.csv"))
 
 tx <- read.csv(here('data_raw',
+                    "01_whwonests",
                     'landscape_data',
                     "IPM_Nests_BurnTypeSeasonMar2023.csv"))
 
@@ -286,6 +290,7 @@ forest3 <- forest2 %>%
 # Export ------------------------------------------------------------------
 
 write.csv(forest3, here("data_outputs",
+                        "01_whwonests",
                         "01_cleaning",
                         "03_nest_landscape_1000_covariates.csv"))
 

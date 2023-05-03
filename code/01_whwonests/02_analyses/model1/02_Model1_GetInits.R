@@ -27,8 +27,8 @@ for(i in package.list){library(i, character.only = T)}
 # 
 # #load the formatted data for the JAGS model
 data <- readRDS(here("data_outputs", 
-                     '03_JAGS_input_data',
                      "01_whwonests",
+                     '03_JAGS_input_data',
                      "mod1_JAGS_input_data.RDS"))
 
 # Parameters to save ------------------------------------------------------

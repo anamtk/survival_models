@@ -52,8 +52,8 @@ mod_GOF <- readRDS(here('monsoon',
 
 #and we also need our original y data
 data <- readRDS(here("data_outputs",
-                     "03_JAGS_input_data",
                      "01_whwonests",
+                     "03_JAGS_input_data",
                      "mod3_JAGS_input_data.RDS"))
 
 # Extract observed data from DF -------------------------------------------

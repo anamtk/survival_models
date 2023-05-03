@@ -43,11 +43,13 @@ source(here("code",
 # Load datasets -----------------------------------------------------------
 
 trees <- read_xlsx(here("data_raw",
+                        "01_whwonests",
                         "veg_data",
                         "Veg02_Live_trees_over_25.xlsx"))
 
 #Info on plot sizes
 meta <- read_xlsx(here("data_raw",
+                       "01_whwonests",
                        "veg_data",
                        "metadata",
                        "Veg00_Habitat_header_info.xlsx"))
@@ -359,6 +361,7 @@ tree_data <- tree_tallies %>%
 # Export DF ---------------------------------------------------------------
 
 write.csv(tree_data, here("data_outputs",
+                          "01_whwonests",
                                "01_cleaning",
                                "02_nest_tree_densities.csv"))
 
