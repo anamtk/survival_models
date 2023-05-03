@@ -199,13 +199,18 @@ model{
   #each level depends on the level higher than it
   #Nested spatial random structure with hierarchical centering: 
   #tranescts within sites
-  for(t in 1:n.transects){
-    b0.transect[t] ~ dnorm(b0.site[Site.num[t]], tau.transect)
-  }
+  # for(t in 1:n.transects){
+  #   b0.transect[t] ~ dnorm(b0.site[Site.num[t]], tau.transect)
+  # }
+  # 
+  # #forests within overall intercept
+  # for(f in 1:n.sites){
+  #   b0.site[f] ~ dnorm(b0, tau.site)
+  # }
   
-  #forests within overall intercept
-  for(f in 1:n.sites){
-    b0.site[f] ~ dnorm(b0, tau.site)
+  #transects within overall mean
+  for(t in 1:n.transects){
+    b0.transect[t] ~ dnorm(b0, tau.transect)
   }
 
   #Random and intercept priors
@@ -213,10 +218,10 @@ model{
   #for low # of levels, from Gellman paper - define sigma
   # as uniform and then precision in relation to this sigma
   sig.transect ~ dunif(0, 10)
-  sig.site ~ dunif(0, 10)
+  #sig.site ~ dunif(0, 10)
   
   tau.transect <- 1/pow(sig.transect,2)
-  tau.site <- 1/pow(sig.site,2)
+  #tau.site <- 1/pow(sig.site,2)
   
   #COVARIATE PRIORS
   for(i in 1:5){
