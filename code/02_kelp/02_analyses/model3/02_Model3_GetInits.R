@@ -29,7 +29,7 @@ for(i in package.list){library(i, character.only = T)}
 data <- readRDS(here("data_outputs",
                      "02_kelp",
                      "03_JAGS_input_data",
-                     "mod2_JAGS_input_data.RDS"))
+                     "mod3_JAGS_input_data.RDS"))
 
 # Parameters to save ------------------------------------------------------
 
@@ -53,9 +53,9 @@ params <- c(
 model <- here("code", 
               "02_kelp",
               "02_analyses",
-              "model2",
+              "model3",
               "jags",
-              "model2.R")
+              "model3.R")
 
 mod <- jagsUI::jags(data = data,
                             inits = NULL,
@@ -101,7 +101,7 @@ raf_all %>%
 # A tibble: 1 × 3
 # iterations_90 iterations_95   max
 # <dbl>         <dbl> <dbl>
-#   1         2968.         5643.  6584
+#   1        13421.        18161. 76300
 
 bu1 <- raf[[1]]$resmatrix[,1]
 bu2 <- raf[[2]]$resmatrix[,1]
@@ -120,7 +120,7 @@ burn <- as.data.frame(cbind(names, bu1, bu2, bu3)) %>%
 
 burn %>%
   summarise(max(iterations, na.rm = T))
-#30
+#212
 
 # 
 # # Initials ----------------------------------------------------------------
@@ -161,9 +161,9 @@ inits <- list(list(b0.site = b0.site,
 saveRDS(inits, 
         file = here("monsoon",
                     "02_kelp",
-                    "model2",
+                    "model3",
                     "inputs",
-                    "model2_inits.RDS"))
+                    "model3_inits.RDS"))
 # 
 # 
 

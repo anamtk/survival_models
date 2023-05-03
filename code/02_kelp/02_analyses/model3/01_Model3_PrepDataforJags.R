@@ -1,8 +1,8 @@
-# Kelp survival data prep
-# May 1, 2023
+# Nest survival data prep
+# November 1, 2021
 # Ana Miller-ter Kuile
 
-# prepping data for the model of kelp surivival with interval data
+# prepping data for the model of nest survival
 
 # Load packages -----------------------------------------------------------
 
@@ -24,9 +24,9 @@ source(here("code",
 kelp <- read.csv(here("data_outputs",
                       "02_kelp",
                       "02_analysis_ready",
-                       "interval_kelp_data.csv"))
+                      "interval_kelp_data.csv"))
 
-# Variables of interest ---------------------------------------------------
+# Initial cleaning --------------------------------------------------------
 
 #a couple plants only visited once
 all_kelp2 <- kelp %>%
@@ -48,14 +48,32 @@ kelp %>%
   distinct(Card_number) %>%
   tally()
 
+# Arrange by interval number for custom model -----------------------
+
+all_kelp2 <- all_kelp2 %>%
+  group_by(Card_number) %>%
+  mutate(n.t = n()) %>%
+  ungroup() %>%
+  arrange(n.t)
+
+
 # Count variables for indexing --------------------------------------------
 
+Plants <- all_kelp2 %>%
+  distinct(Card_number, n.t)
 
-#count variables for indexing
-n.plants <- all_kelp2 %>%
-  distinct(Card_number) %>%
-  summarise(n.plants = n()) %>%
+#number with one interval only
+n.plants1 <- all_kelp2 %>%
+  filter(n.t == 1) %>%
+  tally() %>%
   as_vector()
+
+#total number of plants
+n.plants <- length(Plants$Card_number)
+
+#How many times did each nest get measured
+#(number of intervals)
+n.t <- as_vector(Plants$n.t)
 
 n.transects <- all_kelp2 %>%
   unite(col = Site_transect, 
@@ -71,15 +89,8 @@ n.sites <- all_kelp2 %>%
   summarise(n.reefs = n()) %>%
   as_vector()
 
-#this should be a by-plant vector of number of visit intervals
-n.t <- all_kelp2 %>%
-  mutate(Card_number = factor(Card_number, levels = unique(Card_number))) %>%
-  group_by(Card_number) %>%
-  summarise(n.t = n()) %>%
-  dplyr::select(n.t) %>%
-  as_vector()
-
 n.substrates <- length(unique(all_kelp2$Substrate_Code))
+
 
 # Random variables --------------------------------------------------------
 #these next use the nums() function in the 
@@ -106,6 +117,7 @@ Site.num <- all_kelp2 %>%
   as_vector() %>%
   nums()
 
+
 # Interval covariates -----------------------------------------------------
 #get a scaled matrix for each interval for each plant
 #these use the int_cov custom function from the 
@@ -118,7 +130,7 @@ WavePower <- int_cov(variable = wave_p_mean)
 Stipes <- int_cov(variable = prev_Stipes)
 
 # Fixed covariates for each plant -----------------------------------------
-
+  
 #these are fixed covariates for each plant
 # and derived via the fixed_covs function
 # fom the data prep functions R script
@@ -147,12 +159,6 @@ levels(as.factor(all_kelp2$Substrate_Code))
 #S = 4 = sand
 #SS = 5 = shallow sand
 
-hist(SubstrateID) #lots of 1, 6, 7 - may be a problem 
-all_kelp2 %>%
-  distinct(Card_number, Substrate_Code) %>%
-  group_by(Substrate_Code) %>%
-  tally()
-
 # Time interval matrix ----------------------------------------------------
 
 # this should be a plant x interval matrix
@@ -172,30 +178,32 @@ t <- all_kelp2 %>%
   as.matrix()
 
 
-# Response data y matrix --------------------------------------------------
+# Response data vector ----------------------------------------------------
 
-#underlyin data should be a plant x interval matrix
 y <- all_kelp2 %>%
-  dplyr::select(Card_number, Visit_interval,
-                Presence) %>%
-  pivot_wider(names_from = Visit_interval,
-              values_from = Presence) %>%
-  column_to_rownames(var = "Card_number") %>%
-  as.matrix()
+  group_by(Card_number) %>%
+  filter(Visit_interval == max(Visit_interval)) %>%
+  ungroup() %>%
+  distinct(Card_number, Presence) %>%
+  dplyr::select(Presence) %>%
+  as_vector()
 
+length(y[which(y == 1)])
+length(y[which(y ==0)])
 
-# Compile and export ------------------------------------------------------
+# Export as RDS -----------------------------------------------------------
 
-all_data <- list(n.plants = n.plants,
+all_data <- list(n.plants1 = n.plants1, 
+                 n.plants = n.plants,
                  n.t = n.t,
                  n.transects = n.transects,
-                 n.substrates = n.substrates,
                  n.sites = n.sites,
+                 n.substrates = n.substrates,
                  Transect.num = Transect.num,
                  Site.num = Site.num,
-                 SST = SST, 
-                 Stipes = Stipes,
+                 SST = SST,
                  WavePower = WavePower,
+                 Stipes = Stipes,
                  Diam = Diam,
                  Depth = Depth,
                  SubstrateID = SubstrateID,
@@ -205,17 +213,12 @@ all_data <- list(n.plants = n.plants,
 
 saveRDS(all_data, here("data_outputs", 
                        "02_kelp",
-                       "03_JAGS_input_data",
-                       "mod2_JAGS_input_data.RDS"))
+                       '03_JAGS_input_data',
+                       "mod3_JAGS_input_data.RDS"))
 
-saveRDS(all_data, 
-        file = here("monsoon",
-                    "02_kelp",
-                    "model2",
-                    "inputs",
-                    "mod2_JAGS_input_data.RDS"))
-
-
-
-
+saveRDS(all_data, here("monsoon", 
+                       "02_kelp",
+                       "model3",
+                       "inputs",
+                       "mod3_JAGS_input_data.RDS"))
 
