@@ -179,12 +179,13 @@ for(i in 1:iteration.num){
                           resp = resp)
 }
 
-as.data.frame(mod3_AUC) %>%
-  summarise(mean = mean(mod3_AUC))
+mean <- as.data.frame(mod3_AUC) %>%
+  summarise(mean = mean(mod3_AUC)) %>%
+  as_vector()
 
 (mod3_AUC_plot <- as.data.frame(mod3_AUC) %>%
   ggplot() +
   geom_histogram(aes(x = mod3_AUC)) +
-  geom_vline(xintercept = 0.96, linetype = 2) +
+  geom_vline(xintercept = mean, linetype = 2) +
   labs(title = "Custom probability, logit link"))
 

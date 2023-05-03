@@ -35,15 +35,16 @@ m2 <- read.csv(here("data_outputs",
                     "04_posterior_summaries",
                     "Model2_posteriors.csv"))
 
-# m3 <- read.csv(here("data_outputs",
-#                     "04_posterior_summaries",
-#                     "Model3_posteriors.csv"))
+ m3 <- read.csv(here("data_outputs",
+                     "02_kelp",
+                     "04_posterior_summaries",
+                     "Model3_posteriors.csv"))
 
 
 # Merge data --------------------------------------------------------------
 
-#post <- bind_rows(m1, m2, m3)
-post <- bind_rows(m1, m2)
+post <- bind_rows(m1, m2, m3)
+
 
 
 # Plot --------------------------------------------------------------------

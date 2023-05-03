@@ -112,10 +112,11 @@ y_acc %>%
   group_by(type) %>%
   tally()
 
-#1s:
-208/(208+33)
 #0s:
-734/(734+863)
+743/(734+863)
+#1s:
+209/(208+33)
+
 
 (mod2_acc_plot <- ggplot(y_acc, aes(x = Fate_class, y = P)) +
     geom_hline(yintercept = 0.5, linetype = 2) +
@@ -124,10 +125,10 @@ y_acc %>%
          y = "Predicted survival probability") +
     annotate(geom = "text", 
              x = 0.75, y = 0.45,
-             label = "46%") +
+             label = "47%") +
     annotate(geom = "text", 
              x = 2.25, y = 0.55,
-             label = "86%") )
+             label = "87%") )
 
 # AUC ---------------------------------------------------------------------
 
@@ -147,71 +148,72 @@ for(i in 1:iteration.num){
                           resp = resp)
 }
 
-as.data.frame(mod2_AUC) %>%
-  summarise(mean = mean(mod2_AUC))
+mean <- as.data.frame(mod2_AUC) %>%
+  summarise(mean = mean(mod2_AUC)) %>%
+  as_vector()
 
 (mod2_AUC_plot <- as.data.frame(mod2_AUC) %>%
     ggplot() +
     geom_histogram(aes(x = mod2_AUC)) +
-    geom_vline(xintercept = 0.74, linetype = 2) +
+    geom_vline(xintercept = mean, linetype = 2) +
     labs(title = "Interval-level response \n (last survey data only), logit link"))
 
-
-#THIS IS for all - would need to track pint though for all intervals
-t <- mod_GOF$sims.list$p.int
-
-layers <- dim(t)[[3]]
-
-dfs <- lapply(1:layers,
-              function(x){
-                return(as.data.frame(t[,,x]))
-              } )
-
-dfs1 <- dfs %>%
-  map(~mutate(., iteration = 1:n()))
-
-full_df <- bind_rows(dfs1, .id = "interval") %>%
-  pivot_longer(cols = 2:(last_col()-1),
-               values_to = "p",
-               names_to = "Nest_ID") %>%
-  mutate(Nest_ID = str_sub(Nest_ID, 2, length(Nest_ID))) %>%
-  unite(col = "ID_interval",
-        c("Nest_ID", "interval"),
-        sep = "_") %>%
-  filter(!is.na(p))
-
-
-resp <- as.data.frame(data$y) %>%
-  mutate(Nest_ID = 1:n()) %>%
-  pivot_longer(cols = 1:(last_col()-1),
-               values_to = "resp",
-               names_to = "interval") %>%
-  filter(!is.na(resp)) %>%
-  unite(col = "ID_interval",
-        c("Nest_ID", "interval"),
-        sep = "_")
-
-
-AUC_JAGS2(df = full_df,
-          iteration.num = 3,
-          resp = resp$resp)
-
-iteration.num <- length(unique(full_df$iteration))
-
-mod2_AUC2 <- rep(NA, iteration.num)
-
-for(i in 1:iteration.num){
-  mod2_AUC2[i] <- AUC_JAGS2(df = full_df,
-                           iteration.num = i,
-                           resp = resp$resp)
-}
-
-as.data.frame(mod2_AUC2) %>%
-  summarise(mean = mean(mod2_AUC2))
-
-(mod2_AUC_plotall <- as.data.frame(mod2_AUC2) %>%
-  ggplot() +
-  geom_histogram(aes(x = mod2_AUC2)) +
-  geom_vline(xintercept = 0.54, linetype = 2) +
-  labs(title = "Interval-level response, logit link"))
-
+# 
+# #THIS IS for all - would need to track pint though for all intervals
+# t <- mod_GOF$sims.list$p.int
+# 
+# layers <- dim(t)[[3]]
+# 
+# dfs <- lapply(1:layers,
+#               function(x){
+#                 return(as.data.frame(t[,,x]))
+#               } )
+# 
+# dfs1 <- dfs %>%
+#   map(~mutate(., iteration = 1:n()))
+# 
+# full_df <- bind_rows(dfs1, .id = "interval") %>%
+#   pivot_longer(cols = 2:(last_col()-1),
+#                values_to = "p",
+#                names_to = "Nest_ID") %>%
+#   mutate(Nest_ID = str_sub(Nest_ID, 2, length(Nest_ID))) %>%
+#   unite(col = "ID_interval",
+#         c("Nest_ID", "interval"),
+#         sep = "_") %>%
+#   filter(!is.na(p))
+# 
+# 
+# resp <- as.data.frame(data$y) %>%
+#   mutate(Nest_ID = 1:n()) %>%
+#   pivot_longer(cols = 1:(last_col()-1),
+#                values_to = "resp",
+#                names_to = "interval") %>%
+#   filter(!is.na(resp)) %>%
+#   unite(col = "ID_interval",
+#         c("Nest_ID", "interval"),
+#         sep = "_")
+# 
+# 
+# AUC_JAGS2(df = full_df,
+#           iteration.num = 3,
+#           resp = resp$resp)
+# 
+# iteration.num <- length(unique(full_df$iteration))
+# 
+# mod2_AUC2 <- rep(NA, iteration.num)
+# 
+# for(i in 1:iteration.num){
+#   mod2_AUC2[i] <- AUC_JAGS2(df = full_df,
+#                            iteration.num = i,
+#                            resp = resp$resp)
+# }
+# 
+# as.data.frame(mod2_AUC2) %>%
+#   summarise(mean = mean(mod2_AUC2))
+# 
+# (mod2_AUC_plotall <- as.data.frame(mod2_AUC2) %>%
+#   ggplot() +
+#   geom_histogram(aes(x = mod2_AUC2)) +
+#   geom_vline(xintercept = 0.54, linetype = 2) +
+#   labs(title = "Interval-level response, logit link"))
+# 

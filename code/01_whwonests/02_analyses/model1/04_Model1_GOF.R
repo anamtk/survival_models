@@ -151,12 +151,13 @@ for(i in 1:iteration.num){
                           resp = resp)
 }
 
-as.data.frame(mod1_AUC) %>%
-  summarise(mean = mean(mod1_AUC))
+mean <- as.data.frame(mod1_AUC) %>%
+  summarise(mean = mean(mod1_AUC)) %>%
+  as_vector()
 
 (mod1_AUC_plot <- as.data.frame(mod1_AUC) %>%
   ggplot() +
   geom_histogram(aes(x = mod1_AUC)) +
-  geom_vline(xintercept = 0.96, linetype = 2) +
+  geom_vline(xintercept = mean, linetype = 2) +
   labs(title = "Total survey exposure, logit link") )
 

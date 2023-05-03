@@ -101,7 +101,7 @@ raf_all %>%
 # A tibble: 1 × 3
 # iterations_90 iterations_95   max
 # <dbl>         <dbl> <dbl>
-#   1        13421.        18161. 76300
+#   1        14222.        16868. 27842
 
 bu1 <- raf[[1]]$resmatrix[,1]
 bu2 <- raf[[2]]$resmatrix[,1]
@@ -157,13 +157,13 @@ inits <- list(list(b0.site = b0.site,
                    b6 =  b6 -runif(length(b6), min = 0, max = 1),
                    b = b - runif(length(b), min = 0, max = 1)))
 
-# 
-saveRDS(inits, 
-        file = here("monsoon",
-                    "02_kelp",
-                    "model3",
-                    "inputs",
-                    "model3_inits.RDS"))
+# # 
+# saveRDS(inits, 
+#         file = here("monsoon",
+#                     "02_kelp",
+#                     "model3",
+#                     "inputs",
+#                     "model3_inits.RDS"))
 # 
 # 
 
