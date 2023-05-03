@@ -164,5 +164,5 @@ saveRDS(all_data,
                     "02_kelp",
                     "model1",
                     "inputs",
-                    "mod1_JAGS_input_data.RDS.RDS"))
+                    "mod1_JAGS_input_data.RDS"))
 

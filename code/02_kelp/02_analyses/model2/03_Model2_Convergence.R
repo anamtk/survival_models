@@ -33,9 +33,9 @@ source(here("code",
 
 Rhat <- readRDS(here("monsoon",
                      "02_kelp",
-                     "model1",
+                     "model2",
                      "outputs",
-                     "model1_Rhat.RDS"))
+                     "model2_Rhat.RDS"))
 
 # Gelman-Rubin ------------------------------------------------------------
 

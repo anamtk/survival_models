@@ -32,11 +32,11 @@ source(here::here("code",
 
 # Load data ---------------------------------------------------------------
 
-model1_sum <- readRDS(here("monsoon",
+model2_sum <- readRDS(here("monsoon",
                            "02_kelp",
-                           "model1",
+                           "model2",
                            "outputs",
-                           "model1_posterior_summary.RDS"))
+                           "model2_posterior_summary.RDS"))
 
 
 # Posterior median and CI of all parameters -------------------------------
@@ -49,7 +49,7 @@ parms <- c("b[1]", "b[2]",
 # "B", "BO",
 # "C", "S", "SS"
 
-mod1_est <- as.data.frame(model1_sum$quantiles) %>%
+mod2_est <- as.data.frame(model2_sum$quantiles) %>%
   rownames_to_column(var = "parameter") %>%
   filter(parameter %in% parms) %>%
   mutate(parameter = case_when(parameter == "b[1]" ~ "Sea surface temp",
@@ -62,10 +62,10 @@ mod1_est <- as.data.frame(model1_sum$quantiles) %>%
                                parameter == "b6[4]" ~ "Substrate = sand",
                                parameter == "b6[5]" ~ "Substrate = shallow sand",
                                TRUE ~ parameter)) %>%
-  mutate(Model = "Model1_TotalExposure")
+  mutate(Model = "Model2_IntervalData")
   
-write.csv(mod1_est, here("data_outputs",
+write.csv(mod2_est, here("data_outputs",
                          "02_kelp",
                "04_posterior_summaries",
-               "Model1_posteriors.csv"))
+               "Model2_posteriors.csv"))
 

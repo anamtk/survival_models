@@ -42,7 +42,7 @@ source(here("code",
 # Load GOF model runs -----------------------------------------------------
 
 mod_GOF <- readRDS(here('monsoon',
-                      "01_whwonests",
+                      "02_kelp",
                       "model1",
                       "outputs",
                       "model1_GOF.RDS"))
@@ -52,8 +52,8 @@ mod_GOF <- readRDS(here('monsoon',
 
 #and we also need our original y data
 data <- readRDS(here("data_outputs",
+                     "02_kelp",
                       "03_JAGS_input_data",
-                      "01_whwonests",
                       "mod1_JAGS_input_data.RDS"))
 
 # Extract observed data from DF -------------------------------------------
@@ -74,7 +74,7 @@ yreps <- mod_GOF$sims.list$yrep
 #into a dataframe with a column for iteration ID, nest ID, and interval ID
 yrep<- reshape2::melt(yreps) %>%
   rename("Iteration" = "Var1",
-         "Nest_ID" = "Var2",
+         "Plant_ID" = "Var2",
          "Fate_class" = "value") %>%
   mutate(type = "Simulated")
 
@@ -87,8 +87,7 @@ yrep<- reshape2::melt(yreps) %>%
                alpha = 0.2) +
   geom_density(data = y, aes(x = Fate_class, fill = type), alpha = 0.5))
 
-#look pretty good except the wonky iterations with higher in both sizes? so
-# confusing...
+
 
 
 # Predictive accuracy -----------------------------------------------------
@@ -110,9 +109,9 @@ y_acc %>%
 
 #accuary
 #0s:
-79/(79+13)
+1531/(1531+66)
 #1s:
-225/(225+3)
+212/(212+29)
 
 (mod1_acc_plot <- ggplot(y_acc, aes(x = Fate_class, y = P)) +
     geom_hline(yintercept = 0.5, linetype = 2) +
@@ -121,10 +120,10 @@ y_acc %>%
        y = "Predicted survival probability") +
   annotate(geom = "text", 
            x = 0.75, y = 0.45,
-           label = "86%") +
+           label = "96%") +
   annotate(geom = "text", 
            x = 2.25, y = 0.55,
-           label = "99%") )
+           label = "88%") )
   
 y_acc %>%
   group_by(Fate_class) %>%
@@ -157,6 +156,6 @@ as.data.frame(mod1_AUC) %>%
 (mod1_AUC_plot <- as.data.frame(mod1_AUC) %>%
   ggplot() +
   geom_histogram(aes(x = mod1_AUC)) +
-  geom_vline(xintercept = 0.96, linetype = 2) +
+  geom_vline(xintercept = 0.976, linetype = 2) +
   labs(title = "Total survey exposure, logit link") )
 
