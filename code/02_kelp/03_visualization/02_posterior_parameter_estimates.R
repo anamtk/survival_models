@@ -78,4 +78,6 @@ post %>%
   coord_flip() +
   scale_color_manual(values = c("black", "#af8dc3")) +
   facet_grid(group~., scales = "free") +
-  theme_bw()
+  theme_bw() +
+  labs(y = "Median and 95% CI estimate",
+       x = "Covariate")
