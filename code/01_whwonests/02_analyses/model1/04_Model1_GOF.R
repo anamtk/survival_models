@@ -81,11 +81,11 @@ yrep<- reshape2::melt(yreps) %>%
 # Graph observed versus simulated -----------------------------------------
 
 #posterior predictive check graphical observation
-(m1_pp <- ggplot() +
-  #graph the simulated data
-  geom_density(data = yrep, aes(x = Fate_class, group = Iteration, fill = type), 
-               alpha = 0.2) +
-  geom_density(data = y, aes(x = Fate_class, fill = type), alpha = 0.5))
+# (m1_pp <- ggplot() +
+#   #graph the simulated data
+#   geom_density(data = yrep, aes(x = Fate_class, group = Iteration, fill = type), 
+#                alpha = 0.2) +
+#   geom_density(data = y, aes(x = Fate_class, fill = type), alpha = 0.5))
 
 #look pretty good except the wonky iterations with higher in both sizes? so
 # confusing...
@@ -110,9 +110,9 @@ y_acc %>%
 
 #accuary
 #0s:
-79/(79+13)
+zeros <- round(79/(79+13), digits = 2)*100
 #1s:
-225/(225+3)
+ones <- round(225/(225+3), digits = 2)*100
 
 (mod1_acc_plot <- ggplot(y_acc, aes(x = Fate_class, y = P)) +
     geom_hline(yintercept = 0.5, linetype = 2) +
@@ -121,10 +121,10 @@ y_acc %>%
        y = "Predicted survival probability") +
   annotate(geom = "text", 
            x = 0.75, y = 0.45,
-           label = "86%") +
+           label = paste(zeros, "%", sep = "")) +
   annotate(geom = "text", 
            x = 2.25, y = 0.55,
-           label = "99%") )
+           label = paste(ones, "%", sep = "")) )
   
 y_acc %>%
   group_by(Fate_class) %>%
@@ -136,10 +136,6 @@ y_acc %>%
 # AUC ---------------------------------------------------------------------
 
 resp <- as.vector(y$Fate_class)
-
-AUC_JAGS(mod_GOF = mod_GOF,
-         iteration.num = 11,
-         resp = resp)
 
 iteration.num <- length(mod_GOF$sims.list$p[,1])
 

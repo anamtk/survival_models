@@ -248,5 +248,24 @@ model{
   mu.md ~ dunif(-10, 10)
   sig.md ~ dunif(0, 20)
   tau.md <- pow(sig.md, -2)
+  
+  #-------------------------------------## 
+  # Covariate P-values ###
+  #-------------------------------------##
+  
+  #generate a 1-0 vector for each covariate
+  #such that 1 = + in that iteration, 0 = - in that iteration
+  # the mean of this value will tell us whether something is mostly positive
+  # (high mean posterior value), mostly negative (low mean posterior value)
+  # or somewhree in the middle (often 0, so 0.5 mean posterior)
+  
+  #generates per level of categorical variables
+  z.b6 <- step(b6)
+  
+  #generate p-values for all continuous covariates
+  for(i in 1:5){
+    z[i] <- step(b[i])
+  }
+  
 
 }

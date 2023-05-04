@@ -23,7 +23,7 @@ for(i in package.list){library(i, character.only = T)}
 # Load Data ---------------------------------------------------------------
 
 #load the formatted data for the JAGS model
-data <- readRDS("/scratch/atm234/survival_models/model1/inputs/mod1_JAGS_input_data.RDS")
+data <- readRDS("/scratch/atm234/survival_models/nests/model1/inputs/mod1_JAGS_input_data.RDS")
 
 # Compile data ------------------------------------------------------------
 data_list <- list(#Data count variables
@@ -85,29 +85,33 @@ params <- c(
             'b1TreatmentID',
             'b2SpeciesID',
             'b3StageID',
-            'b'
+            'b',
+            'z.b2',
+            'z.b1',
+            'z.b3',
+            'z'
           )
 
 # INits -------------------------------------------------------------------
 
-inits <- readRDS("/scratch/atm234/survival_models/model1/inputs/model1_inits.RDS")
+inits <- readRDS("/scratch/atm234/survival_models/nests/model1/inputs/model1_inits.RDS")
 
 # JAGS model --------------------------------------------------------------
 
 mod <- jagsUI::jags(data = data_list,
                         inits = inits,
                         #inits = NULL,
-                        model.file = "/scratch/atm234/survival_models/model1/inputs/model1.R",
+                        model.file = "/scratch/atm234/survival_models/nests/model1/inputs/model1.R",
                         parameters.to.save = params,
                         parallel = TRUE,
                         n.chains = 3,
                         n.burnin = 1000,
-                        n.iter = 68000,
+                        n.iter = 100000,
                         DIC = TRUE)
 
 #save as an R data object
 saveRDS(mod, 
-        file = "/scratch/atm234/survival_models/model1/outputs/model1_JAGS_model.RDS")
+        file = "/scratch/atm234/survival_models/nests/model1/outputs/model1_JAGS_model.RDS")
 
 Sys.time()
 

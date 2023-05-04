@@ -23,7 +23,7 @@ for(i in package.list){library(i, character.only = T)}
 # Load Data ---------------------------------------------------------------
 
 #load the formatted data for the JAGS model
-data <- readRDS("/scratch/atm234/survival_models/model3/inputs/mod3_JAGS_input_data.RDS")
+data <- readRDS("/scratch/atm234/survival_models/nests/model3/inputs/mod3_JAGS_input_data.RDS")
 
 # Compile data ------------------------------------------------------------
 data_list <- list(#Data count variables
@@ -86,7 +86,11 @@ params <- c(
             'b1TreatmentID',
             'b2SpeciesID',
             "b3StageID",
-            'b'
+            'b',
+            'z.b1',
+            'z.b2',
+            'z.b3',
+            'z'
           )
 
       
@@ -95,17 +99,17 @@ params <- c(
 
 mod <- jagsUI::jags(data = data_list,
                         inits = NULL,
-                        model.file = "/scratch/atm234/survival_models/model3/inputs/model3.R",
+                        model.file = "/scratch/atm234/survival_models/nests/model3/inputs/model3.R",
                         parameters.to.save = params,
                         parallel = TRUE,
                         n.chains = 3,
                         n.burnin = 1000,
-                        n.iter = 26000,
+                        n.iter = 100000,
                         DIC = TRUE)
 
 #save as an R data object
 saveRDS(mod, 
-        file = "/scratch/atm234/survival_models/model3/outputs/model3_JAGS_model.RDS")
+        file = "/scratch/atm234/survival_models/nests/model3/outputs/model3_JAGS_model.RDS")
 
 Sys.time()
 

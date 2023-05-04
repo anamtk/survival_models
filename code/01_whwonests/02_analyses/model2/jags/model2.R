@@ -217,5 +217,27 @@ model {
      tau.ppt[f] <- pow(sig.ppt[f], -2)
    }
   
+  
+  #-------------------------------------## 
+  # Covariate P-values ###
+  #-------------------------------------##
+  
+  #generate a 1-0 vector for each covariate
+  #such that 1 = + in that iteration, 0 = - in that iteration
+  # the mean of this value will tell us whether something is mostly positive
+  # (high mean posterior value), mostly negative (low mean posterior value)
+  # or somewhree in the middle (often 0, so 0.5 mean posterior)
+  
+  #generates per level of categorical variables
+  z.b1 <- step(b1TreatmentID)
+  z.b2 <- step(b2SpeciesID)
+  z.b3 <- step(b3StageID)
+  
+  #generate p-values for all continuous covariates
+  for(i in 4:18){
+    z[i] <- step(b[i])
+  }
+  
+  
 }
 
