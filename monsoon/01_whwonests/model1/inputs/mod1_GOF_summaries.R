@@ -17,7 +17,7 @@ for(i in package.list){library(i, character.only = T)}
 
 # Import model ------------------------------------------------------------
 
-mod <- readRDS(file = "/scratch/atm234/survival_models/model1/outputs/model1_JAGS_model.RDS")
+mod <- readRDS(file = "/scratch/atm234/survival_models/nests/model1/outputs/model1_JAGS_model.RDS")
 
 
 # Update for goodness of fit ----------------------------------------------
@@ -30,7 +30,7 @@ mod.update <- update(mod,
                       codaOnly = TRUE)
 
 saveRDS(mod.update, 
-        file= "/scratch/atm234/survival_models/model1/outputs/model1_GOF.RDS")
+        file= "/scratch/atm234/survival_models/nests/model1/outputs/model1_GOF.RDS")
 
 
 # Output summary stats and coda samples -----------------------------------
@@ -51,11 +51,11 @@ samples_all <- as.data.frame(rbind(a,b,c))
 samples_all2 <- slice_sample(samples_all, n = 4000)
 
 saveRDS(samples_all2, 
-        file= "/scratch/atm234/survival_models/model1/outputs/model1_post_samples.RDS")
+        file= "/scratch/atm234/survival_models/nests/model1/outputs/model1_post_samples.RDS")
 
 summary <- summary(mod$samples)
 
 saveRDS(summary, 
-        file= "/scratch/atm234/survival_models/model1/outputs/model1_posterior_summary.RDS")
+        file= "/scratch/atm234/survival_models/nests/model1/outputs/model1_posterior_summary.RDS")
 
 
