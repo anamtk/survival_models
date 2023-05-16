@@ -1,3 +1,4 @@
+set.seed(1)
 #number of individuals in dataset
 n.indiv <- 300
 #number of times each individual was smpaled, with max 4
@@ -7,21 +8,21 @@ n.t <- sample(4, 300, replace = T)
 meta <- as.data.frame(cbind(ID = 1:300,
                     n.t = n.t))
 
-#mean of 9 day interval from random samples
-t <- round(rnorm(747, mean = 9, sd = 3))
-t <- as.data.frame(t)
 
 #get full visit dataset by repeating id by the n.t for the ID
-visits <- as.data.frame(rep(df$ID, df$n.t)) %>%
-  rename("ID" = 'rep(df$ID, df$n.t)') %>%
+visits <- as.data.frame(rep(meta$ID, meta$n.t)) %>%
+  rename("ID" = 'rep(meta$ID, meta$n.t)')%>%
   group_by(ID) %>%
   #get a 1:n interval number per ID
   mutate(int = 1:n()) %>%
-  ungroup() %>%
-  #add in the amount of time for each interval
-  bind_cols(t) 
+  ungroup() 
+
+#mean of 9 day interval from random samples
+t <- round(rnorm(nrow(visits), mean = 9, sd = 3))
+t <- as.data.frame(t)
 
 visits2 <- visits %>%
+  bind_cols(t) %>%
   group_by(ID) %>%
   mutate(end = cumsum(t)) %>%
   mutate(start = lag(end)) %>%
@@ -30,14 +31,14 @@ visits2 <- visits %>%
   ungroup()
   
 #what is the maximum time an individual was surveyed?
-visits %>%
+visits2 %>%
   group_by(ID) %>%
   summarise(sum = sum(t)) %>%
-  summarise(max = max(sum)) #48 days is max in this dataset right now
+  summarise(max = max(sum)) #49 days is max in this dataset right now
   
 #does variable need to vary with time? or does it just need
 #to vary in the season in low, med, high levels? HMM...
-time <- 1:48
+time <- 1:49
 x1 <- time*5 + 20
 
 plot(x1 ~ time)

@@ -287,3 +287,61 @@ mod1_AUC_plot + mod2_AUC_plotall + mod3_AUC_plot +
   plot_layout(ncol = 1)
 
 
+
+# Ways to zoom in ---------------------------------------------------------
+
+(m32 <- as.data.frame(mod3_AUC) %>%
+   ggplot() +
+   geom_density(aes(x = mod3_AUC), fill = '#fdb462', color = "black") +
+   geom_vline(xintercept = mean3, linetype = 2) +
+   labs(x = "AUC",
+        y = "Count") +
+   theme(axis.title.y = element_blank()))
+
+(m12 <- as.data.frame(mod1_AUC) %>%
+    ggplot() +
+    geom_density(aes(x = mod1_AUC), fill = "#8dd3c7", color = "black") +
+    geom_vline(xintercept = mean1, linetype = 2) +
+    labs(x = "AUC",
+         y = "Count") +
+    theme(axis.title = element_blank()))
+
+mod1AUC <- as.data.frame(mod1_AUC) %>%
+  mutate(type = "exposure") %>%
+  rename("AUC" = "mod1_AUC")
+mod3AUC <- as.data.frame(mod3_AUC) %>%
+  mutate(type = "custom") %>%
+  rename("AUC" = "mod3_AUC")
+
+auc_df <- mod1AUC %>%
+  bind_rows(mod3AUC)
+
+box <- auc_df %>%
+  filter(!type %in% c("All intervals", "Last interval")) %>%
+  mutate(type = factor(type, levels = c("exposure", "custom"))) %>%
+  ggplot( aes(x = type, y = AUC, fill = type)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c( "#8dd3c7",'#fdb462')) +
+  theme(legend.position = "none") +
+  scale_x_discrete(labels = c("custom" = "Custom",
+                              "exposure" = "Total exposure")) +
+  labs(x = "Model",
+       title = "D.Custom vs. total exposure")
+
+(mod1_AUC_plot / mod2_AUC_plotall / mod3_AUC_plot) | box
+
+(mod1_AUC_plot / mod2_AUC_plotall / mod3_AUC_plot)
+
+ggsave(filename = here("pictures",
+                       "whwo_AUC.pdf"),
+       width = 4,
+       height = 4,
+       units = "in")
+
+box
+
+ggsave(filename = here('pictures',
+                       'whwo_AUC_box.pdf'),
+       width = 4, 
+       height = 4,
+       units = "in")

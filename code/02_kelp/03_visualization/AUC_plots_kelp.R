@@ -290,6 +290,12 @@ mean3 <- as.data.frame(mod3_AUC) %>%
 mod1_AUC_plot + mod2_AUC_plotall + mod3_AUC_plot +
   plot_layout(ncol = 1)
 
+ggsave(filename = here("pictures",
+                       "kelp_AUC.pdf"),
+       width = 4,
+       height = 4,
+       units = "in")
+
 mod1_AUC_plot + mod2_AUC_plot + mod3_AUC_plot +
   plot_layout(ncol = 1)
 
@@ -303,8 +309,21 @@ mod3AUC <- as.data.frame(mod3_AUC) %>%
 auc_df <- mod1AUC %>%
   bind_rows(mod2auc2, mod3AUC)
 
-auc_df %>%
-  filter(type != "All intervals") %>%
-  ggplot( aes(x = type, y = AUC)) +
+box <- auc_df %>%
+  filter(!type %in% c("All intervals", "Last interval")) %>%
+  mutate(type = factor(type, levels = c("exposure", "custom"))) %>%
+  ggplot( aes(x = type, y = AUC, fill = type)) +
   geom_boxplot() +
-  scale_y_log10()
+  scale_fill_manual(values = c( "#8dd3c7",'#fdb462')) +
+  theme(legend.position = "none") +
+  scale_x_discrete(labels = c("custom" = "Custom",
+                              "exposure" = "Total exposure")) +
+  labs(x = "Model",
+       title = "D.Custom vs. total exposure")
+
+
+ggsave(filename = here('pictures',
+                       'kelp_AUC_box.pdf'),
+       width = 4, 
+       height = 4,
+       units = "in")

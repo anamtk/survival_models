@@ -26,20 +26,19 @@ for(i in package.list){library(i, character.only = T)}
 # Load posteriors ---------------------------------------------------------
 
 m1 <- read.csv(here("data_outputs",
+                    "01_whwonests",
                     "04_posterior_summaries",
                     "Model1_posteriors.csv"))
 
 m2 <- read.csv(here("data_outputs",
+                    "01_whwonests",
                     "04_posterior_summaries",
                     "Model2_posteriors.csv"))
 
 m3 <- read.csv(here("data_outputs",
+                    "01_whwonests",
                     "04_posterior_summaries",
                     "Model3_posteriors.csv"))
-
-# m3g <- read.csv(here("data_outputs",
-#                      "04_posterior_summaries",
-#                      "Model3gompit_posteriors.csv"))
 
 
 # Merge data --------------------------------------------------------------

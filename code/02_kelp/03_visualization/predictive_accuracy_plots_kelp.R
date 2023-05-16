@@ -256,4 +256,12 @@ mod1_acc_plot + mod2_acc_plot + mod3_acc_plot
 
 
 
+ggsave(filename = here("pictures",
+                       "kelp_accuracy.pdf"),
+       height = 4, 
+       width = 8,
+       units = "in")
+
+
+
 

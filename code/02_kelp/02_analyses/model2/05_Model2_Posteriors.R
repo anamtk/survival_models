@@ -69,3 +69,54 @@ write.csv(mod2_est, here("data_outputs",
                "04_posterior_summaries",
                "Model2_posteriors.csv"))
 
+
+# Pvalues -----------------------------------------------------------------
+
+# "B", "BO",
+# "C", "S", "SS"
+
+p_values2 <- as.data.frame(model2_sum$statistics) %>%
+  dplyr::select(Mean) %>%
+  rownames_to_column(var = "zvalue") %>%
+  filter(str_detect(zvalue, "z")) %>%
+  mutate(p = case_when(Mean >= 0.5 ~ (1-Mean), #I Think these are 1-tailed p-values but check with Kiona
+                       Mean < 0.5 ~ (1 - (1-Mean)))) %>%
+  mutate(p_cat = case_when(p <= 0.05 ~ "s",
+                           TRUE ~ "ns")) %>%
+  mutate(direction = case_when(Mean >= 0.5 ~ 'positive', 
+                               Mean < 0.5 ~ "negative")) %>%
+  mutate(p_dir = case_when((p_cat == "s" & direction == "positive") ~ p,
+                           (p_cat == "s" & direction == "negative") ~ -p,
+                           TRUE ~ NA_real_)) %>%
+  filter(!zvalue %in% c("z.b6[1]")) %>%
+  mutate(zvalue = case_when(zvalue == 'z.b6[2]' ~ 
+                              'Substrate:Boulder',
+                            zvalue == "z.b6[3]" ~
+                              "Substrate:Cobble",
+                            zvalue == "z.b6[4]" ~
+                              "Substrate:Sand",
+                            zvalue == "z.b6[5]" ~
+                              "Substrate:ShallowSand",
+                            zvalue == "z[1]" ~ "SST",
+                            zvalue == "z[2]" ~ "WavePower",
+                            zvalue == "z[3]" ~ "StipeNum",
+                            zvalue == "z[4]" ~ "HoldfastDiam",
+                            zvalue == "z[5]" ~ "Depth",
+                            TRUE ~ zvalue)) %>%
+  mutate(Model = "Model2_IntervalData")
+
+p_values2 %>%
+  filter(!is.na(p_dir)) %>%
+  ggplot(aes(x = reorder(zvalue, p), y = p_dir)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point() +
+  coord_flip()
+
+write.csv(p_values2, here("data_outputs",
+                          "02_kelp",
+                          "04_posterior_summaries",
+                          "Model2_pvalues.csv"))
+
+
+
+

@@ -98,3 +98,66 @@ write.csv(mod1_est, here("data_outputs",
                "04_posterior_summaries",
                "Model1_posteriors.csv"))
 
+
+# P-values ----------------------------------------------------------------
+
+p_values1 <- as.data.frame(model1_sum$statistics) %>%
+  dplyr::select(Mean) %>%
+  rownames_to_column(var = "zvalue") %>%
+  filter(str_detect(zvalue, "z")) %>%
+  mutate(p = case_when(Mean >= 0.5 ~ (1-Mean), #I Think these are 1-tailed p-values but check with Kiona
+                       Mean < 0.5 ~ (1 - (1-Mean)))) %>%
+  mutate(p_cat = case_when(p <= 0.05 ~ "s",
+                           TRUE ~ "ns")) %>%
+  mutate(direction = case_when(Mean >= 0.5 ~ 'positive', 
+                       Mean < 0.5 ~ "negative")) %>%
+  mutate(p_dir = case_when((p_cat == "s" & direction == "positive") ~ p,
+                           (p_cat == "s" & direction == "negative") ~ -p,
+                           TRUE ~ NA_real_)) %>%
+  filter(!zvalue %in% c("z.b1[1]", "z.b2[1]", 'z.b3[1]')) %>%
+  mutate(zvalue = case_when(zvalue == 'z.b1[2]' ~ 
+                                 'TreatmentType:Burn',
+                               zvalue == "z.b1[3]" ~
+                                 "TreatmentType:Harvest",
+                               zvalue == "z.b1[4]" ~
+                                 "TreatmentType:Harvest+Burn",
+                               zvalue == "z.b2[2]" ~
+                                 "NestTree:Abies",
+                               zvalue == "z.b2[3]" ~
+                                 "NestTree:Aspen",
+                               zvalue == "z.b2[4]" ~
+                                 "NestTree:Juniper",
+                               zvalue == "z.b2[5]" ~
+                                 "NestTree:DougFir",
+                               zvalue == "z.b3[2]" ~
+                                 "Stage:Egg",
+                               zvalue == "z[4]" ~ "NestHt",
+                               zvalue == "z[5]" ~ "NestOrientation",
+                               zvalue == "z[6]" ~ "InitDay",
+                               zvalue == "z[7]" ~ "LgTreeDens",
+                               zvalue == "z[8]" ~ "SmTreeDens",
+                               zvalue == "z[9]" ~ "PercPonderosa",
+                               zvalue == "z[10]" ~ "Tmax",
+                               zvalue == "z[11]" ~ "Tmax^2",
+                               zvalue == "z[12]" ~ "PPT",
+                               zvalue == "z[13]" ~ "PPT^2",
+                               zvalue == "z[14]" ~ "ForestCV",
+                               zvalue == "z[15]" ~ "Contagion",
+                               zvalue == "z[16]" ~ "NumOpenPatch",
+                               zvalue == "z[17]" ~ "PercHarvest",
+                               zvalue == "z[18]" ~ "PercBurn",
+                               TRUE ~ zvalue)) %>%
+  mutate(Model = "Model1_TotalExposure")
+
+p_values1 %>%
+  filter(!is.na(p_dir)) %>%
+  ggplot(aes(x = reorder(zvalue, p), y = p_dir)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point() +
+  coord_flip()
+
+
+write.csv(p_values1, here("data_outputs",
+                         "01_whwonests",
+                         "04_posterior_summaries",
+                         "Model1_pvalues.csv"))
