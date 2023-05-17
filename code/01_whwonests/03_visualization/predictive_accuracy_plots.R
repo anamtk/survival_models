@@ -195,11 +195,11 @@ y_acc2 %>%
 # Model 3 -----------------------------------------------------------------
 
 
-mu_p3.1 <- as.data.frame(mod3_GOF$mean$yrep_1) %>%
-  rename("P" = 'mod3_GOF$mean$yrep_1')
+mu_p3.1 <- as.data.frame(mod3_GOF$mean$p1) %>%
+  rename("P" = 'mod3_GOF$mean$p1')
 
-mu_p3.2 <- as.data.frame(mod3_GOF$mean$yrep_2) %>%
-  rename("P" = 'mod3_GOF$mean$yrep_2') %>%
+mu_p3.2 <- as.data.frame(mod3_GOF$mean$p2) %>%
+  rename("P" = 'mod3_GOF$mean$p2') %>%
   filter(!is.na(P))
 
 times <- as.data.frame(data3$n.t) %>%
@@ -222,7 +222,7 @@ y_acc3 %>%
 
 #accuary
 #0s:
-zeros3 <- round(80/(80+12), digits = 2)*100#87%
+zeros3 <- round(81/(81+11), digits = 2)*100#87%
 #1s:
 ones3 <- round(224/(224+4), digits = 2)*100 #98%
 

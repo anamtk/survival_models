@@ -119,9 +119,9 @@ y_acc1 %>%
 
 #accuary
 #0s:
-zeros1 <- round(1532/(1532+65), digits = 2)*100
+zeros1 <- round(1530/(1530+67), digits = 2)*100
 #1s:
-ones1 <- round(221/(221+30), digits = 2)*100
+ones1 <- round(212/(212+29), digits = 2)*100
 
 (mod1_acc_plot <- ggplot(y_acc1, aes(x = Fate_class, y = P)) +
     geom_hline(yintercept = 0.5, linetype = 2) +
@@ -165,9 +165,9 @@ y_acc2 %>%
   tally()
 
 #0s:
-zeros2 <- round(741/(741+856), digits = 2)*100
+zeros2 <- round(743/(743+854), digits = 2)*100
 #1s:
-ones2 <- round(211/(211+30), digits = 2)*100
+ones2 <- round(209/(209+32), digits = 2)*100
 
 (mod2_acc_plot <- ggplot(y_acc2, aes(x = Fate_class, y = P)) +
     geom_hline(yintercept = 0.5, linetype = 2) +
@@ -195,11 +195,11 @@ y_acc2 %>%
 # Model 3 -----------------------------------------------------------------
 
 
-mu_p3.1 <- as.data.frame(mod3_GOF$mean$yrep_1) %>%
-  rename("P" = 'mod3_GOF$mean$yrep_1')
+mu_p3.1 <- as.data.frame(mod3_GOF$mean$p1) %>%
+  rename("P" = 'mod3_GOF$mean$p1')
 
-mu_p3.2 <- as.data.frame(mod3_GOF$mean$yrep_2) %>%
-  rename("P" = 'mod3_GOF$mean$yrep_2') %>%
+mu_p3.2 <- as.data.frame(mod3_GOF$mean$p2) %>%
+  rename("P" = 'mod3_GOF$mean$p2') %>%
   filter(!is.na(P))
 
 times <- as.data.frame(data3$n.t) %>%
