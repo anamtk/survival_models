@@ -119,7 +119,7 @@ low_vardf <- visits %>%
   #set t_sc for all y=1 intervals with NAs currently
   #to be around the mean of successes for end fates, with
   #sd that we can vary for three different datasets
-  mutate(x1_sc = case_when(is.na(x1_sc) ~ rnorm(1, mean = 0.3, sd = 0.1),
+  mutate(x1_sc = case_when(is.na(x1_sc) ~ rnorm(1, mean = 0.31, sd = 0.1),
                           TRUE ~ x1_sc))
   
 
@@ -137,7 +137,7 @@ med_vardf <- visits %>%
   #set t_sc for all y=1 intervals with NAs currently
   #to be around the mean of successes for end fates, with
   #sd that we can vary for three different datasets
-  mutate(x1_sc = case_when(is.na(x1_sc) ~ rnorm(1, mean = 0.226, sd = .5),
+  mutate(x1_sc = case_when(is.na(x1_sc) ~ rnorm(1, mean = 0.31, sd = .5),
                           TRUE ~ x1_sc))
 
 
@@ -155,7 +155,7 @@ high_vardf <- visits %>%
   #set t_sc for all y=1 intervals with NAs currently
   #to be around the mean of successes for end fates, with
   #sd that we can vary for three different datasets
-  mutate(x1_sc = case_when(is.na(x1_sc) ~ rnorm(1, mean = 0.226, sd = 1),
+  mutate(x1_sc = case_when(is.na(x1_sc) ~ rnorm(1, mean = 0.31, sd = 0.8),
                           TRUE ~ x1_sc))
 
 
