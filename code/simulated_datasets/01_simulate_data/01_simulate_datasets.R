@@ -52,30 +52,34 @@ meta <- as.data.frame(cbind(ID = 1:300,
 #predictor variable, t
 x1 <- rnorm(300, mean = 23, sd = 6)
 
+ts <- c(1:10)
 #bind predictor with other data, scale predictor
 meta <- meta %>%
   bind_cols(x1= x1) %>%
-  mutate(x1_sc = scale(x1))
+  mutate(x1_sc = scale(x1)) %>%
+  rowwise() %>%
+  #get number of days/time steps per interval
+  mutate(t = sample(ts,size = 1, replace = T)) 
 
 
 # Simulate final fate data ------------------------------------------------
 
 #final fate data simulation from logistic regression
-intercept <- 1
-beta <- 1 #effect of scaled t
+intercept <- 6.81
+beta <- 4.85 #effect of scaled t
 
 #get regression model defined
 z <-  intercept + beta*(meta$x1_sc)       # linear combination with a bias
 #inverse logit that model to get survival probability
-pr <-  exp(z)/(1+exp(z))         # pass through an inv-logit function
+pr <-  (exp(z)/(1+exp(z)))^meta$t        # pass through an inv-logit function
 
 #bind the probabilities and then calcluate the
 #end fates
 meta2 <- meta %>%
   bind_cols(pr = pr) %>%
-  mutate(y_end = rbinom(300, 1, pr))
+  mutate(y_end = rbinom(1, 1, pr))
 
-ts <- c(1:10)
+
 #get full visit dataset by repeating id by the n.t for the ID
 visits <- as.data.frame(rep(meta$ID, meta$n.t)) %>%
   rename("ID" = 'rep(meta$ID, meta$n.t)')%>%
@@ -96,8 +100,7 @@ visits <- as.data.frame(rep(meta$ID, meta$n.t)) %>%
   ungroup() %>%
   dplyr::select(-pr, -x1) %>%
   rowwise() %>%
-  #get number of days/time steps per interval
-  mutate(t = sample(ts,size = 1, replace = T))
+  mutate(x1_sc = as.numeric(x1_sc))
 
 #what is the mean predictor by end fate category?
 meta2 %>%
@@ -116,13 +119,14 @@ low_vardf <- visits %>%
   #set t_sc for all y=1 intervals with NAs currently
   #to be around the mean of successes for end fates, with
   #sd that we can vary for three different datasets
-  mutate(x1_sc = case_when(is.na(x1_sc) ~ rnorm(1, mean = 0.226, sd = 0.25),
+  mutate(x1_sc = case_when(is.na(x1_sc) ~ rnorm(1, mean = 0.3, sd = 0.1),
                           TRUE ~ x1_sc))
   
 
 #check this model
 model_low <- glm(y ~ x1_sc,
              data = low_vardf,
+             offset = low_vardf$t,
              family = "binomial")
 
 summary(model_low)
@@ -139,6 +143,7 @@ med_vardf <- visits %>%
 
 model_med <- glm(y ~ x1_sc,
                  data = med_vardf,
+                 offset = med_vardf$t,
                  family = "binomial")
 
 summary(model_med)
@@ -156,6 +161,7 @@ high_vardf <- visits %>%
 
 model_high <- glm(y ~ x1_sc,
                  data = high_vardf,
+                 offset = high_vardf$t,
                  family = "binomial")
 
 summary(model_high)
