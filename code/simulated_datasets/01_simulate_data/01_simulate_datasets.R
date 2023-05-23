@@ -17,11 +17,6 @@ if(length(new.packages)) install.packages(new.packages)
 ## And loading them
 for(i in package.list){library(i, character.only = T)}
 
-source(here("code",
-            "00_functions",
-            "tidy_functions.R"))
-
-
 # Data specifications -----------------------------------------------------
 
 # -Response data need to be 1-0 data for a set of individuals
