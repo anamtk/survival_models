@@ -180,7 +180,12 @@ write.csv(trees2, here("data_outputs",
 
 trees3 <- trees2 %>%
   group_by(Site, Block, Trt, Plot, Tree_Number, CoreID, PlotID) %>%
-  summarise(start_year = min(Year),
+  mutate(response = as.factor(response)) %>%
+  mutate(response = case_when(any(response == "Dead") ~ "Dead",
+                                  TRUE ~ "Live")) %>%
+  ungroup() %>%
+  group_by(Site, Block, Trt, Plot, Tree_Number, CoreID, PlotID, response) %>%
+  summarise(start_year = min(priorYear),
             end_year = max(Year),
             BA = mean(priorBA, na.rm = T),
             DBH = mean(priorDBH, na.rm = T)) %>%
