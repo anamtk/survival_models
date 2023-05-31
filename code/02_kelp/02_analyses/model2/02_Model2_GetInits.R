@@ -44,7 +44,7 @@ params <- c(
             'sig.site',
             #covariates
             'b',
-            'b6'
+            'b9'
             )
 
 
@@ -57,6 +57,7 @@ model <- here("code",
               "jags",
               "model2.R")
 
+Sys.time()
 mod <- jagsUI::jags(data = data,
                             inits = NULL,
                             model.file = model,
@@ -65,6 +66,8 @@ mod <- jagsUI::jags(data = data,
                             n.chains = 3,
                             n.iter = 4000,
                             DIC = TRUE)
+
+Sys.time()
 
 mcmcplot(mod$samples)
 
@@ -130,7 +133,7 @@ sig.site <- mod$mean$sig.site
 b0.transect <- mod$mean$b0.transect
 sig.transect <- mod$mean$sig.transect
 b0 <- mod$mean$b0
-b6 <- c(NA, mod$mean$b6[2:length(mod$mean$b6)])
+b9 <- c(NA, mod$mean$b9[2:length(mod$mean$b9)])
 b <- mod$mean$b
 
 # # Set initials ------------------------------------------------------------
@@ -140,21 +143,21 @@ inits <- list(list(#b0.site = b0.site,
                    b0.transect = b0.transect,
                    sig.transect = sig.transect,
                    b0 = b0,
-                   b6 = b6,
+                   b9 = b9,
                    b = b),
               list(#b0.site = b0.site + runif(length(b0.site), min = 0, max = 1),
                    #sig.site = sig.site + runif(length(sig.site), min = 0, max = 1),
                    b0.transect = b0.transect +runif(length(b0.transect), min = 0, max = 1),
                    sig.transect = sig.transect +runif(length(sig.transect), min = 0, max = 1),
                    b0 = b0 + runif(length(b0), min = 0, max = 1),
-                   b6 =  b6 +runif(length(b6), min = 0, max = 1),
+                   b9 =  b9 +runif(length(b9), min = 0, max = 1),
                    b = b + runif(length(b), min = 0, max = 1)),
               list(#b0.site = b0.site - runif(length(b0.site), min = 0, max = 1),
                    #sig.site = sig.site + runif(length(sig.site), min = 0, max = 1),
                    b0.transect = b0.transect -runif(length(b0.transect), min = 0, max = 1),
                    sig.transect = sig.transect +runif(length(sig.transect), min = 0, max = 1),
                    b0 = b0 - runif(length(b0), min = 0, max = 1),
-                   b6 =  b6 -runif(length(b6), min = 0, max = 1),
+                   b9 =  b9 -runif(length(b9), min = 0, max = 1),
                    b = b - runif(length(b), min = 0, max = 1)))
 
 # 

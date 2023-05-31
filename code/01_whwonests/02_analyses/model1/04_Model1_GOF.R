@@ -2,14 +2,6 @@
 # April 6, 2023
 # Ana Miller-ter Kuile
 
-# this is a hack of the bayesplot functionality to generate posterior
-# predictive check graphs - specifically to assess - is the model family and link
-# function I've selected appropriate for the data I have, or do I need to consider
-# a different link or distribution (e.g. logit vs. cloglog link for binomial data; 
-# poisson vs. negative binomial distribution for count data)
-#then - i generate balanced accuracy values for each iteration of the model
-#to see how good the model is prediction overall (balanced accuracy) and at 
-# 1s (sensitivity) and 0's (specificity) separately
 
 # Load packages ---------------------------------------------------------------
 
@@ -110,9 +102,9 @@ y_acc %>%
 
 #accuary
 #0s:
-zeros <- round(79/(79+13), digits = 2)*100
+zeros <- round(87/(87+5), digits = 2)*100
 #1s:
-ones <- round(225/(225+3), digits = 2)*100
+ones <- round(227/(227+1), digits = 2)*100
 
 (mod1_acc_plot <- ggplot(y_acc, aes(x = Fate_class, y = P)) +
     geom_hline(yintercept = 0.5, linetype = 2) +
@@ -155,5 +147,5 @@ mean <- as.data.frame(mod1_AUC) %>%
   ggplot() +
   geom_histogram(aes(x = mod1_AUC)) +
   geom_vline(xintercept = mean, linetype = 2) +
-  labs(title = "Total survey exposure, logit link") )
+  labs(title = "Total survey exposure") )
 

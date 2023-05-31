@@ -119,9 +119,9 @@ y_acc1 %>%
 
 #accuary
 #0s:
-zeros1 <- round(79/(79+13), digits = 2)*100
+zeros1 <- round(87/(87+5), digits = 2)*100
 #1s:
-ones1 <- round(225/(225+3), digits = 2)*100
+ones1 <- round(227/(227+1), digits = 2)*100
 
 (mod1_acc_plot <- ggplot(y_acc1, aes(x = Fate_class, y = P)) +
     geom_hline(yintercept = 0.5, linetype = 2) +
@@ -222,9 +222,9 @@ y_acc3 %>%
 
 #accuary
 #0s:
-zeros3 <- round(81/(81+11), digits = 2)*100#87%
+zeros3 <- round(85/(85+7), digits = 2)*100#87%
 #1s:
-ones3 <- round(224/(224+4), digits = 2)*100 #98%
+ones3 <- round(228/(228), digits = 2)*100 #98%
 
 (mod3_acc_plot <- ggplot(y_acc3, aes(x = Fate_class, y = P)) +
     geom_hline(yintercept = 0.5, linetype = 2) +

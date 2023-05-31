@@ -47,7 +47,8 @@ parms <- c("b[4]", "b[5]",
            "b[9]", "b[10]", "b[11]",          
            "b[12]", "b[13]", "b[14]",           
            "b[15]", "b[16]", "b[17]",  
-           "b[18]",
+           "b[18]",'b[19]', 'b[20]',
+           'b[21]', 'b[22]',
            'b3StageID[2]',
            "b1TreatmentID[2]","b1TreatmentID[3]",
            "b1TreatmentID[4]", "b2SpeciesID[2]",  
@@ -90,6 +91,10 @@ mod3_est <- as.data.frame(model3_sum$quantiles) %>%
                                parameter == "b[16]" ~ "NumOpenPatch",
                                parameter == "b[17]" ~ "PercHarvest",
                                parameter == "b[18]" ~ "PercBurn",
+                               parameter == 'b[19]' ~ "LgTrees*pPIPO",
+                               parameter == 'b[20]' ~ "SmTrees*pPIPO",
+                               parameter == 'b[21]' ~ "LgTrees*Tmax",
+                               parameter == 'b[22]' ~ "SmTrees*Tmax",
                                TRUE ~ parameter)) %>%
   mutate(Model = "Model3_CustomProb")
 
@@ -147,6 +152,10 @@ p_values3 <- as.data.frame(model3_sum$statistics) %>%
                             zvalue == "z[16]" ~ "NumOpenPatch",
                             zvalue == "z[17]" ~ "PercHarvest",
                             zvalue == "z[18]" ~ "PercBurn",
+                            zvalue == "z[19]" ~ "LgTrees*pPIPO",
+                            zvalue == "z[20]" ~ "SmTrees*pPIPO",
+                            zvalue == "z[21]" ~ "LgTrees*Tmax",
+                            zvalue == "z[22]" ~ "SmTrees*Tmax",
                             TRUE ~ zvalue)) %>%
   mutate(Model = "Model3_CustomProb")
 

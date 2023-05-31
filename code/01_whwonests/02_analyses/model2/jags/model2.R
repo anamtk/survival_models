@@ -76,7 +76,11 @@ model {
         b[15]*Contag[i] +
         b[16]*OpenNm[i] +
         b[17]*LandHa[i] +
-        b[18]*LandBu[i]
+        b[18]*LandBu[i] +
+        b[19]*Trees50[i]*PercPonderosa[i] +
+        b[20]*Trees2550[i]*PercPonderosa[i] +
+        b[21]*Trees50[i]*Tmax[i,j] +
+        b[22]*Trees2550[i]*Tmax[i,j]
       
       #-------------------------------------## 
       # Imputing missing data ###
@@ -185,7 +189,7 @@ model {
   b3StageID[1] <- 0
 
   #all other continuous covariate b's
-  for(i in 4:18){
+  for(i in 4:22){
     b[i] ~ dnorm(0, 1E-2)
   }
   
@@ -234,7 +238,7 @@ model {
   z.b3 <- step(b3StageID)
   
   #generate p-values for all continuous covariates
-  for(i in 4:18){
+  for(i in 4:22){
     z[i] <- step(b[i])
   }
   

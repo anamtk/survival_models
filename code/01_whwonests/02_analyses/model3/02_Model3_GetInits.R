@@ -68,7 +68,7 @@ model <- here("code",
               "jags",
               "model3.R")
 
-Sys.time()
+Sys.time() #~6 minutes
 mod <- jagsUI::jags(data = data,
                             inits = NULL,
                             model.file = model,

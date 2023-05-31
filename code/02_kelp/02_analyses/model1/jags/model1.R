@@ -44,7 +44,11 @@ model{
       b[3]*Stipes[i] +
       b[4]*Diam[i] +
       b[5]*Depth[i] +
-      b6[SubstrateID[i]]
+      b[6]*WavePower[i]*Depth[i] +
+      b[7]*WavePower[i]*Stipes[i] +
+      b[8]*WavePower[i]*Diam[i] +
+      b9[SubstrateID[i]] 
+      
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###
@@ -105,7 +109,7 @@ model{
   
   #COVARIATE PRIORS
   #all other continuous covariate b's
-  for(i in 1:5){
+  for(i in 1:8){
     b[i] ~ dnorm(0, 1E-2)
   }
   
@@ -116,10 +120,10 @@ model{
   #level as a reference to compare effects of others to
   #cell-reference approach:
   for(s in 2:n.substrates){
-    b6[s] ~ dnorm(0, 1E-2)
+    b9[s] ~ dnorm(0, 1E-2)
   }
   
-  b6[1] <- 0
+  b9[1] <- 0
   
   #IMPUTING DATA PRIORS
   #Priors for missing covariate mean and precision
@@ -142,10 +146,10 @@ model{
   # or somewhree in the middle (often 0, so 0.5 mean posterior)
   
   #generates per level of categorical variables
-  z.b6 <- step(b6)
+  z.b9 <- step(b9)
  
   #generate p-values for all continuous covariates
-  for(i in 1:5){
+  for(i in 1:8){
     z[i] <- step(b[i])
   }
   

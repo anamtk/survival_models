@@ -66,7 +66,7 @@ model <- here("code",
               "jags",
               "model2.R")
 
-Sys.time()
+Sys.time() #~6 minutes
 mod <- jagsUI::jags(data = data,
                             inits = NULL,
                             model.file = model,
@@ -114,7 +114,7 @@ raf_all %>%
 # A tibble: 1 × 3
 # iterations_90 iterations_95   max
 # <dbl>         <dbl> <dbl>
-#   1         15705         20230 48540
+#   1         8895.        12355. 70146
 
 bu1 <- raf[[1]]$resmatrix[,1]
 bu2 <- raf[[2]]$resmatrix[,1]

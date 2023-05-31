@@ -65,7 +65,12 @@ model{
       b[15]*Contag[i] +
       b[16]*OpenNm[i] +
       b[17]*LandHa[i] +
-      b[18]*LandBu[i] 
+      b[18]*LandBu[i] +
+      #interactions
+      b[19]*Trees50[i]*PercPonderosa[i] +
+      b[20]*Trees2550[i]*PercPonderosa[i] +
+      b[21]*Trees50[i]*Tmax[i] +
+      b[22]*Trees2550[i]*Tmax[i]
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###
@@ -130,9 +135,9 @@ model{
   b0 ~ dnorm(0, 1E-2)
   #for low # of levels, from Gellman paper - define sigma
   # as uniform and then precision in relation to this sigma
-  sig.transect ~ dunif(0, 10)
-  sig.forest ~ dunif(0, 10)
-  sig.year ~ dunif(0, 10)
+  sig.transect ~ dunif(0, 20)
+  sig.forest ~ dunif(0, 50)
+  sig.year ~ dunif(0, 50)
   
   tau.transect <- 1/pow(sig.transect,2)
   tau.forest <- 1/pow(sig.forest,2)
@@ -158,7 +163,7 @@ model{
   b3StageID[1] <- 0
   
   #all other continuous covariate b's
-  for(i in 4:18){
+  for(i in 4:22){
     b[i] ~ dnorm(0, 1E-2)
   }
   
@@ -206,7 +211,7 @@ model{
   z.b3 <- step(b3StageID)
   
   #generate p-values for all continuous covariates
-  for(i in 4:18){
+  for(i in 4:22){
     z[i] <- step(b[i])
   }
   
