@@ -38,7 +38,7 @@ params <- c(
             'b0',
             #covariates
             'b',
-            'b14'
+            'b10'
             )
 
 

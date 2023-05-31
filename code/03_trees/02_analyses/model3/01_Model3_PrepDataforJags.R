@@ -1,8 +1,8 @@
-# Nest survival data prep
+# Tree survival data prep
 # November 1, 2021
 # Ana Miller-ter Kuile
 
-# prepping data for the model of nest survival
+# prepping data for the model of tree survival
 
 # Load packages -----------------------------------------------------------
 

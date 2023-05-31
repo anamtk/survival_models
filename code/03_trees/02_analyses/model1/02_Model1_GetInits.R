@@ -38,7 +38,7 @@ params <- c(
             'b0',
             #covariates
             'b',
-            'b14'
+            'b10'
             )
 
 
@@ -92,10 +92,9 @@ raf_all %>%
                                      na.rm = T)/3,
             max = max(iterations, 
                       na.rm = T)/3)
-# A tibble: 1 × 3
 # iterations_90 iterations_95   max
 # <dbl>         <dbl> <dbl>
-#   1        31371.        39091. 79995
+#   1        21892.        26335. 55724
 
 bu1 <- raf[[1]]$resmatrix[,1]
 bu2 <- raf[[2]]$resmatrix[,1]
@@ -114,26 +113,26 @@ burn <- as.data.frame(cbind(names, bu1, bu2, bu3)) %>%
 
 burn %>%
   summarise(max(iterations, na.rm = T))
-#221
+#150
 
 # 
 # # Initials ----------------------------------------------------------------
 # 
 
 b0 <- mod$mean$b0
-b14 <- c(NA, mod$mean$b14[2:length(mod$mean$b14)])
+b10 <- c(NA, mod$mean$b10[2:length(mod$mean$b10)])
 b <- mod$mean$b
 
 # # Set initials ------------------------------------------------------------
 
 inits <- list(list(b0 = b0,
-                   b14 = b14,
+                   b10 = b10,
                    b = b),
               list(b0 = b0 + runif(length(b0), min = 0, max = 1),
-                   b14 =  b14 +runif(length(b14), min = 0, max = 1),
+                   b10 =  b10 +runif(length(b10), min = 0, max = 1),
                    b = b + runif(length(b), min = 0, max = 1)),
               list(b0 = b0 - runif(length(b0), min = 0, max = 1),
-                   b14 =  b14 -runif(length(b14), min = 0, max = 1),
+                   b10 =  b10 -runif(length(b10), min = 0, max = 1),
                    b = b - runif(length(b), min = 0, max = 1)))
 
 # 

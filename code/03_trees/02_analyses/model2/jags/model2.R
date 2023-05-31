@@ -43,18 +43,13 @@ model {
         b[1]*DBH[i,j] +
         b[2]*BA[i,j] +
         b[3]*CanopyCover[i,j] +
-        b[4]*VPD_ds[i,j] +
-        b[5]*VPD_fa[i,j] +
-        b[6]*VPD_ms[i,j] +
-        b[7]*VPD_sp[i,j] +
-        b[8]*VPD_wt[i,j] +
-        b[9]*SWA_ds[i,j] +
-        b[10]*SWA_fa[i,j] +
-        b[11]*SWA_ms[i,j] +
-        b[12]*SWA_sp[i,j] +
-        b[13]*SWA_wt[i,j] +
-        b14[TreatmentID[i,j]] #do these change???
-
+        b[4]*VPD_fa[i,j] +
+        b[5]*VPD_ms[i,j] +
+        b[6]*VPD_sp[i,j] +
+        b[7]*SWA_ds[i,j] +
+        b[8]*SWA_fa[i,j] +
+        b[9]*SWA_wt[i,j] +
+        b10[TreatmentID[i,j]]
       #-------------------------------------## 
       # Model Goodness-of-fit objects ###
       #-------------------------------------##
@@ -91,7 +86,7 @@ model {
   b0 ~ dnorm(0, 1E-2)
   
   #COVARIATE PRIORS
-  for(i in 1:13){
+  for(i in 1:9){
     b[i] ~ dnorm(0, 1E-2)
   }
   
@@ -102,10 +97,10 @@ model {
   #level as a reference to compare effects of others to
   #cell-reference approach:
   for(t in 2:n.trt){
-    b14[t] ~ dnorm(0, 1E-2)
+    b10[t] ~ dnorm(0, 1E-2)
   }
   
-  b14[1] <- 0
+  b10[1] <- 0
   
   
   #-------------------------------------## 
@@ -119,10 +114,10 @@ model {
   # or somewhree in the middle (often 0, so 0.5 mean posterior)
   
   #generates per level of categorical variables
-  z.b14 <- step(b14)
+  z.b10 <- step(b10)
   
   #generate p-values for all continuous covariates
-  for(i in 1:13){
+  for(i in 1:9){
     z[i] <- step(b[i])
   }
   
