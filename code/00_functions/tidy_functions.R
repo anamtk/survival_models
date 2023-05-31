@@ -293,6 +293,27 @@ int_cov <- function(variable){
   return(matrix)
 }
 
+# Covariate matrix function2 -----------------------------------------------
+
+#get a scaled matrix for each interval for each plant
+int_cov2 <- function(variable){
+  matrix <- trees2 %>%
+    #scale the variable of interest
+    mutate(var1 = scale({{variable}})) %>%
+    #select the variables you want
+    dplyr::select(CoreID, Visit_interval, var1) %>%
+    #put these into a long format
+    pivot_wider(names_from = Visit_interval,
+                values_from = var1) %>%
+    #make the column name the card number
+    column_to_rownames(var = "CoreID") %>%
+    #set as matrix for jags
+    as.matrix()
+  
+  #return the matrix from the function all
+  return(matrix)
+}
+
 
 # Fixed covariate data prep function --------------------------------------
 
