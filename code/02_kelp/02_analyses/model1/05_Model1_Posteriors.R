@@ -42,9 +42,10 @@ model1_sum <- readRDS(here("monsoon",
 # Posterior median and CI of all parameters -------------------------------
 
 parms <- c("b[1]", "b[2]",
-           "b[3]", "b[4]","b[5]",  
-           'b6[2]', 'b6[3]',
-           'b6[4]', 'b6[5]')
+           "b[3]", "b[4]","b[5]", 
+           'b[6]', 'b[7]', 'b[8]',
+           'b9[2]', 'b9[3]',
+           'b9[4]', 'b9[5]')
 
 # "B", "BO",
 # "C", "S", "SS"
@@ -57,10 +58,13 @@ mod1_est <- as.data.frame(model1_sum$quantiles) %>%
                                parameter == "b[3]" ~ "Stipe number",
                                parameter == "b[4]" ~ "Holdfast diameter",
                                parameter == "b[5]" ~ "Plant depth",
-                               parameter == 'b6[2]' ~ "Substrate = boulder",
-                               parameter == "b6[3]" ~ "Substrate = cobble",
-                               parameter == "b6[4]" ~ "Substrate = sand",
-                               parameter == "b6[5]" ~ "Substrate = shallow sand",
+                               parameter == "b[6]" ~ "Wave power*Depth",
+                               parameter == "b[7]" ~ "Wave power*Stipe number",
+                               parameter == "b[8]" ~ "Wave power*Holdfast diameter",
+                               parameter == 'b9[2]' ~ "Substrate = boulder",
+                               parameter == "b9[3]" ~ "Substrate = cobble",
+                               parameter == "b9[4]" ~ "Substrate = sand",
+                               parameter == "b9[5]" ~ "Substrate = shallow sand",
                                TRUE ~ parameter)) %>%
   mutate(Model = "Model1_TotalExposure")
   
@@ -88,20 +92,23 @@ p_values1 <- as.data.frame(model1_sum$statistics) %>%
   mutate(p_dir = case_when((p_cat == "s" & direction == "positive") ~ p,
                            (p_cat == "s" & direction == "negative") ~ -p,
                            TRUE ~ NA_real_)) %>%
-  filter(!zvalue %in% c("z.b6[1]")) %>%
-  mutate(zvalue = case_when(zvalue == 'z.b6[2]' ~ 
+  filter(!zvalue %in% c("z.b9[1]")) %>%
+  mutate(zvalue = case_when(zvalue == 'z.b9[2]' ~ 
                               'Substrate:Boulder',
-                            zvalue == "z.b6[3]" ~
+                            zvalue == "z.b9[3]" ~
                               "Substrate:Cobble",
-                            zvalue == "z.b6[4]" ~
+                            zvalue == "z.b9[4]" ~
                               "Substrate:Sand",
-                            zvalue == "z.b6[5]" ~
+                            zvalue == "z.b9[5]" ~
                               "Substrate:ShallowSand",
                             zvalue == "z[1]" ~ "SST",
                             zvalue == "z[2]" ~ "WavePower",
                             zvalue == "z[3]" ~ "StipeNum",
                             zvalue == "z[4]" ~ "HoldfastDiam",
                             zvalue == "z[5]" ~ "Depth",
+                            zvalue == "z[6]" ~ "Wave power*Depth",
+                            zvalue == "z[7]" ~ "Wave power*Stipe number",
+                            zvalue == "z[8]" ~ "Wave power*Holdfast diameter",
                             TRUE ~ zvalue)) %>%
   mutate(Model = "Model1_TotalExposure")
 

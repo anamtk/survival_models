@@ -159,21 +159,13 @@ model{
       #tree or interval scale
       logit(ps[i,j]) <- 
         b0 +
-        b[1]*DBH[i,j] +
-        b[2]*BA[i,j] +
-        b[3]*CanopyCover[i,j] +
-        b[4]*VPD_ds[i,j] +
-        b[5]*VPD_fa[i,j] +
-        b[6]*VPD_ms[i,j] +
-        b[7]*VPD_sp[i,j] +
-        b[8]*VPD_wt[i,j] +
-        b[9]*SWA_ds[i,j] +
-        b[10]*SWA_fa[i,j] +
-        b[11]*SWA_ms[i,j] +
-        b[12]*SWA_sp[i,j] +
-        b[13]*SWA_wt[i,j] +
-        b14[TreatmentID[i,j]] #do these change???
-    
+        b1[TreatmentID[i,j]] +
+        b[2]*DBH[i,j] +
+        b[3]*DBH[i,j]^2 +
+        b[4]*BA[i,j] +
+        b[5]*CanopyCover[i,j] +
+        b[6]*maxVPD[i,j] +
+        b[7]*minSWA[i,j] 
       
     } #interval j
     
@@ -196,7 +188,7 @@ model{
   b0 ~ dnorm(0, 1E-2)
   
   #COVARIATE PRIORS
-  for(i in 1:13){
+  for(i in 2:7){
     b[i] ~ dnorm(0, 1E-2)
   }
   
@@ -207,10 +199,10 @@ model{
   #level as a reference to compare effects of others to
   #cell-reference approach:
   for(t in 2:n.trt){
-    b14[t] ~ dnorm(0, 1E-2)
+    b1[t] ~ dnorm(0, 1E-2)
   }
   
-  b14[1] <- 0
+  b1[1] <- 0
   
   #-------------------------------------## 
   # Covariate P-values ###
@@ -223,10 +215,10 @@ model{
   # or somewhree in the middle (often 0, so 0.5 mean posterior)
   
   #generates per level of categorical variables
-  z.b14 <- step(b14)
+  z.b1 <- step(b1)
   
   #generate p-values for all continuous covariates
-  for(i in 1:13){
+  for(i in 2:7){
     z[i] <- step(b[i])
   }
   

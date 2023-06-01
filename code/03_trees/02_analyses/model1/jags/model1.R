@@ -37,16 +37,13 @@ model{
     #yearly survival regression
     logit(ps[i]) <-  #set of covariates on probability
       b0 +
-      b[1]*AvgDBH[i] +
-      b[2]*AvgBA[i] +
-      b[3]*CanopyCover[i] +
-      b[4]*VPD_fa[i] +
-      b[5]*VPD_ms[i] +
-      b[6]*VPD_sp[i] +
-      b[7]*SWA_ds[i] +
-      b[8]*SWA_fa[i] +
-      b[9]*SWA_wt[i] +
-      b10[TreatmentID[i]]
+      b1[TreatmentID[i]] +
+      b[2]*AvgDBH[i] +
+      b[3]*AvgDBH[i]^2 +
+      b[4]*AvgBA[i] +
+      b[5]*CanopyCover[i] +
+      b[6]*maxVPD[i] +
+      b[7]*minSWA[i] 
     
     #-------------------------------------## 
     # Model Goodness-of-fit objects ###
@@ -78,7 +75,7 @@ model{
   
   #COVARIATE PRIORS
   #all other continuous covariate b's
-  for(i in 1:9){
+  for(i in 2:7){
     b[i] ~ dnorm(0, 1E-2)
   }
   
@@ -89,10 +86,10 @@ model{
   #level as a reference to compare effects of others to
   #cell-reference approach:
   for(t in 2:n.trt){
-    b10[t] ~ dnorm(0, 1E-2)
+    b1[t] ~ dnorm(0, 1E-2)
   }
   
-  b10[1] <- 0
+  b1[1] <- 0
   
   #-------------------------------------## 
   # Covariate P-values ###
@@ -105,10 +102,10 @@ model{
   # or somewhree in the middle (often 0, so 0.5 mean posterior)
   
   #generates per level of categorical variables
-  z.b10 <- step(b10)
+  z.b1 <- step(b1)
  
   #generate p-values for all continuous covariates
-  for(i in 1:9){
+  for(i in 2:7){
     z[i] <- step(b[i])
   }
   

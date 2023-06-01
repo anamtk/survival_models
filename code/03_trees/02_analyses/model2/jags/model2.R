@@ -40,16 +40,14 @@ model {
       #set of covariates on probability
       logit(ps[i, j]) <- 
         b0 +
-        b[1]*DBH[i,j] +
-        b[2]*BA[i,j] +
-        b[3]*CanopyCover[i,j] +
-        b[4]*VPD_fa[i,j] +
-        b[5]*VPD_ms[i,j] +
-        b[6]*VPD_sp[i,j] +
-        b[7]*SWA_ds[i,j] +
-        b[8]*SWA_fa[i,j] +
-        b[9]*SWA_wt[i,j] +
-        b10[TreatmentID[i,j]]
+        b1[TreatmentID[i,j]] +
+        b[2]*DBH[i,j] +
+        b[3]*DBH[i,j]^2 +
+        b[4]*BA[i,j] +
+        b[5]*CanopyCover[i,j] +
+        b[6]*maxVPD[i,j] +
+        b[7]*minSWA[i,j] 
+        
       #-------------------------------------## 
       # Model Goodness-of-fit objects ###
       #-------------------------------------##
@@ -86,7 +84,7 @@ model {
   b0 ~ dnorm(0, 1E-2)
   
   #COVARIATE PRIORS
-  for(i in 1:9){
+  for(i in 2:7){
     b[i] ~ dnorm(0, 1E-2)
   }
   
@@ -97,10 +95,10 @@ model {
   #level as a reference to compare effects of others to
   #cell-reference approach:
   for(t in 2:n.trt){
-    b10[t] ~ dnorm(0, 1E-2)
+    b1[t] ~ dnorm(0, 1E-2)
   }
   
-  b10[1] <- 0
+  b1[1] <- 0
   
   
   #-------------------------------------## 
@@ -114,10 +112,10 @@ model {
   # or somewhree in the middle (often 0, so 0.5 mean posterior)
   
   #generates per level of categorical variables
-  z.b10 <- step(b10)
+  z.b1 <- step(b1)
   
   #generate p-values for all continuous covariates
-  for(i in 1:9){
+  for(i in 2:7){
     z[i] <- step(b[i])
   }
   

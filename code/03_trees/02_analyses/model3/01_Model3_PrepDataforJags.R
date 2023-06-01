@@ -66,16 +66,8 @@ trees2 <- trees2 %>%
 DBH <- int_cov2(variable = priorDBH)
 BA <- int_cov2(variable = priorBA)
 CanopyCover <- int_cov2(variable = CanopyCover)
-VPD_ds <- int_cov2(variable = meanVPD_Dry.Summer)
-VPD_fa <- int_cov2(variable = meanVPD_Fall)
-VPD_ms <- int_cov2(variable = meanVPD_Monsoon.Summer)
-VPD_sp <- int_cov2(variable = meanVPD_Spring)
-VPD_wt <- int_cov2(variable = meanVPD_Winter)
-SWA_ds <- int_cov2(variable = meanVPD_Dry.Summer)
-SWA_fa <- int_cov2(variable = meanVPD_Fall)
-SWA_ms <- int_cov2(variable = meanVPD_Monsoon.Summer)
-SWA_sp <- int_cov2(variable = meanVPD_Spring)
-SWA_wt <- int_cov2(variable = meanVPD_Winter)
+maxVPD <- int_cov2(variable = maxVPD)
+minSWA <- int_cov2(variable = minSWA)
 
 TreatmentID <- trees2 %>%
   dplyr::select(CoreID, Visit_interval, Trt) %>%
@@ -121,16 +113,8 @@ all_data <- list(n.trees1 = n.trees1,
                  DBH = DBH,
                  BA = BA,
                  CanopyCover = CanopyCover,
-                 VPD_ds = VPD_ds,
-                 VPD_fa = VPD_fa,
-                 VPD_ms = VPD_ms,
-                 VPD_sp = VPD_sp,
-                 VPD_wt = VPD_wt,
-                 SWA_ds = SWA_ds,
-                 SWA_fa = SWA_fa,
-                 SWA_ms = SWA_ms,
-                 SWA_sp = SWA_sp,
-                 SWA_wt = SWA_wt,
+                 maxVPD = maxVPD,
+                 minSWA = minSWA,
                  TreatmentID = TreatmentID,
                  t = t,
                  y = y)

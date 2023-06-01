@@ -38,7 +38,7 @@ params <- c(
             'b0',
             #covariates
             'b',
-            'b10'
+            'b1'
             )
 
 
@@ -57,7 +57,7 @@ mod <- jagsUI::jags(data = data,
                             parameters.to.save = params,
                             parallel = TRUE,
                             n.chains = 3,
-                            n.iter = 4000,
+                            n.iter = 4,
                             DIC = TRUE)
 
 mcmcplot(mod$samples)

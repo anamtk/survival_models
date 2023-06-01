@@ -52,27 +52,14 @@ covs <- trees %>%
   mutate(Trt = as.factor(Trt)) %>%
   distinct(CoreID, Trt,
            BA, DBH, CanopyCover,
-           meanVPD_Dry.Summer, meanVPD_Fall,
-           meanVPD_Monsoon.Summer, meanVPD_Spring,
-           meanVPD_Winter, 
-           SWA_Dry.Summer, SWA_Fall,
-           SWA_Monsoon.Summer, SWA_Spring,
-           SWA_Winter) %>%
+           maxVPD, minSWA) %>%
   mutate_if(is.numeric, scale) #center and scale continuous covariates
 
 AvgDBH <- as.vector(covs$DBH) 
 AvgBA <- as.vector(covs$BA)
 CanopyCover <- as.vector(covs$CanopyCover)
-VPD_ds <- as.vector(covs$meanVPD_Dry.Summer)
-VPD_fa <- as.vector(covs$meanVPD_Fall)
-VPD_ms <- as.vector(covs$meanVPD_Monsoon.Summer)
-VPD_sp <- as.vector(covs$meanVPD_Spring)
-VPD_wt <- as.vector(covs$meanVPD_Winter)
-SWA_ds <- as.vector(covs$SWA_Dry.Summer)
-SWA_fa <- as.vector(covs$SWA_Fall)
-SWA_ms <- as.vector(covs$SWA_Monsoon.Summer)
-SWA_sp <- as.vector(covs$SWA_Spring)
-SWA_wt <- as.vector(covs$SWA_Winter)
+maxVPD <- as.vector(covs$maxVPD)
+minSWA <- as.vector(covs$minSWA)
 
 covs %>%
   group_by(Trt) %>%
@@ -110,16 +97,8 @@ all_data <- list(#Data count variables
                  AvgDBH = AvgDBH,
                  AvgBA = AvgBA,
                  CanopyCover = CanopyCover,
-                 VPD_ds = VPD_ds,
-                 VPD_fa = VPD_fa,
-                 VPD_ms = VPD_ms,
-                 VPD_sp = VPD_sp,
-                 VPD_wt = VPD_wt,
-                 SWA_ds = SWA_ds,
-                 SWA_fa = SWA_fa,
-                 SWA_ms = SWA_ms,
-                 SWA_sp = SWA_sp,
-                 SWA_wt = SWA_wt,
+                 maxVPD = maxVPD,
+                 minSWA = minSWA,
                  TreatmentID = TreatmentID,
                  #dataset
                  y = y,
