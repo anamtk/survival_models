@@ -1,0 +1,3 @@
+load("/Users/ana/Dropbox/NAU/datasets/survival_models/monsoon/03_trees/model1/outputs/model1_GOF.RDS")
+load("/Users/ana/Dropbox/NAU/datasets/survival_models/monsoon/03_trees/model1/outputs/model1_posterior_summary.RDS")
+load("/Users/ana/Dropbox/NAU/datasets/survival_models/monsoon/03_trees/model1/outputs/model1_Rhat.RDS")
