@@ -19,16 +19,16 @@ for(i in package.list){library(i, character.only = T)}
 
 # Import model ------------------------------------------------------------
 
-mod <- readRDS(file = "/scratch/atm234/survival_models/kelp/model2/outputs/model2_JAGS_model.RDS")
+mod <- readRDS(file = "/scratch/atm234/survival_models/trees/model2/outputs/model2_JAGS_model.RDS")
 
 
 # Check convergence -------------------------------------------------------
 
 mcmcplot(mod$samples,
-         dir = '/scratch/atm234/survival_models/kelp/model2/outputs/mcmcplots/')
+         dir = '/scratch/atm234/survival_models/trees/model2/outputs/mcmcplots')
 
 # Get RHat per parameter ------------------------------------------------
 
 Rhat <- mod$Rhat
 
-saveRDS(Rhat, '/scratch/atm234/survival_models/kelp/model2/outputs/model2_Rhat.RDS')
+saveRDS(Rhat, '/scratch/atm234/survival_models/trees/model2/outputs/model2_Rhat.RDS')
