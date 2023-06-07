@@ -28,38 +28,50 @@ source(here("code",
 low <- read.csv(here("data_outputs",
                      "simulated",
                      "02_analysis_ready",
-                     "lowvar_data.csv"))
+                     "low_var_interval_data.csv"))
+
+low.tot <- read.csv(here("data_outputs",
+                         "simulated",
+                         "02_analysis_ready",
+                         "low_var_total_data.csv"))
 
 # Prep data objects for models --------------------------------------------
 
 
 # Model 1 -----------------------------------------------------------------
 
-n.indiv <- low %>%
+n.indiv <- low.tot %>%
   distinct(ID) %>%
   tally() %>%
   as_vector()
 
-y <- low %>%
-  distinct(ID, y_end) %>%
-  dplyr::select(y_end) %>%
-  as_vector()
+y <- low.tot %>%
+  dplyr::select(Dataset, ID, fate) %>%
+  pivot_wider(names_from = Dataset,
+              values_from = fate) %>%
+  arrange(ID) %>%
+  column_to_rownames(var = "ID") %>%
+  as.matrix()
 
-x1 <- low %>%
-  group_by(ID) %>%
-  summarise(x1_sc = mean(x1_sc)) %>%
-  dplyr::select(x1_sc) %>%
-  as_vector()
+x <- low.tot %>%
+  dplyr::select(Dataset, ID, x) %>%
+  pivot_wider(names_from = Dataset,
+              values_from = x) %>%
+  arrange(ID) %>%
+  column_to_rownames(var = "ID") %>%
+  as.matrix()
 
-t <- low %>%
-  group_by(ID) %>%
-  summarise(t = sum(t)) %>%
-  dplyr::select(t) %>%
-  as_vector()
+t <- low.tot %>%
+  dplyr::select(Dataset, ID, t) %>%
+  pivot_wider(names_from = Dataset,
+              values_from = t) %>%
+  arrange(ID) %>%
+  column_to_rownames(var = "ID") %>%
+  as.matrix()
 
 data1 <- list(n.indiv = n.indiv,
              y = y,
-             x1 = x1,
+             x = x,
              t = t)
 
 saveRDS(data1, here("data_outputs",
@@ -76,37 +88,44 @@ n.indiv <- low %>%
   as_vector()
 
 n.t <- low %>%
-  distinct(ID, n.t) %>%
-  dplyr::select(n.t) %>%
-  as_vector()
-#matrix
-y <- low %>%
-  dplyr::select(ID, int, y) %>%
-  pivot_wider(names_from = int,
-              values_from = y) %>%
+  group_by(ID, Dataset) %>%
+  tally(name = "n.t") %>%
+  pivot_wider(names_from = Dataset,
+              values_from = n.t) %>%
+  arrange(ID) %>% 
   column_to_rownames(var = "ID") %>%
-  as.matrix()
+  as.matrix
 
-#matrix
-t <- low %>%
-  dplyr::select(ID, int, t) %>%
-  pivot_wider(names_from = int,
-              values_from = t) %>%
-  column_to_rownames(var = "ID") %>%
-  as.matrix()
+n.ind <- 300
+n.int <- 10
+n.data <- 100
 
-#matrix
-x1 <- low %>%
-  dplyr::select(ID, int, x1_sc) %>%
-  pivot_wider(names_from = int,
-              values_from = x1_sc) %>%
-  column_to_rownames(var = "ID") %>%
-  as.matrix()
+ID <- low$ID
+interval <- low$interval
+Dataset <- low$Dataset
+
+y <- array(NA, dim = c(n.ind, n.int, n.data))
+
+for(i in 1:dim(low)[1]){
+  y[ID[i], interval[i], Dataset[i]] <- low[i, 5]
+}
+
+t <- array(NA, dim = c(n.ind, n.int, n.data))
+
+for(i in 1:dim(low)[1]){
+  t[ID[i], interval[i], Dataset[i]] <- low[i, 7]
+}
+
+x <- array(NA, dim = c(n.ind, n.int, n.data))
+
+for(i in 1:dim(low)[1]){
+  x[ID[i], interval[i], Dataset[i]] <- low[i, 6]
+}
 
 data2 <- list(n.indiv = n.indiv,
              n.t = n.t,
              y = y,
-             x1 = x1,
+             x = x,
              t = t)
 
 saveRDS(data2, here("data_outputs",
