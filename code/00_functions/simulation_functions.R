@@ -117,3 +117,80 @@ y_function2 <- function(n.ind,
   
 }
 
+
+#filter data by dataset
+#sort by 1's then >1's
+#pull out the y's, t's, n.t's, and x's in that order
+#make these into matrices
+
+
+n.t_fun <- function(df, dataset){
+  
+  df1 <- df %>%
+    filter(Dataset == dataset) %>%
+    group_by(ID) %>%
+    mutate(n.t = n()) %>%
+    arrange(n.t) %>%
+    ungroup() %>%
+    distinct(ID, n.t)
+  
+  n.t <- as.vector(df1$n.t)
+  
+  return(n.t)
+}
+
+x_fun <- function(df, dataset){
+  
+  df1 <- df %>%
+    filter(Dataset == dataset) %>%
+    group_by(ID) %>%
+    mutate(n.t = n()) %>%
+    arrange(n.t) %>%
+    ungroup() %>%
+    dplyr::select(ID, interval, x) %>%
+    pivot_wider(names_from = interval,
+                values_from = x) %>%
+    dplyr::select(-ID) %>%
+    as.matrix()
+  
+  return(df1)
+}
+
+
+t_fun <- function(df, dataset){
+  
+  df1 <- df %>%
+    filter(Dataset == dataset) %>%
+    group_by(ID) %>%
+    mutate(n.t = n()) %>%
+    arrange(n.t) %>%
+    ungroup() %>%
+    dplyr::select(ID, interval, t) %>%
+    pivot_wider(names_from = interval,
+                values_from = t) %>%
+    dplyr::select(-ID) %>%
+    as.matrix()
+  
+  return(df1)
+  
+}
+
+
+
+y_fun <- function(df, dataset){
+  
+  y <- df %>%
+    filter(Dataset == dataset) %>%
+    group_by(ID) %>%
+    mutate(n.t = n()) %>%
+    arrange(n.t) %>%
+    filter(interval == max(interval)) %>%
+    ungroup() %>%
+    dplyr::select(fate) %>%
+    as_vector()
+  
+  return(y)
+}
+
+
+
