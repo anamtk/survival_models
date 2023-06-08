@@ -18,11 +18,6 @@ if(length(new.packages)) install.packages(new.packages)
 ## And loading them
 for(i in package.list){library(i, character.only = T)}
 
-source(here("code",
-            "00_functions",
-            "tidy_functions.R"))
-
-
 # Import data -------------------------------------------------------------
 
 data1 <- readRDS(here("data_outputs",
@@ -45,7 +40,7 @@ data3 <- readRDS(here("data_outputs",
 
 # Set up for jags models --------------------------------------------------
 
-parms <- c("b", "b0", "z")
+parms <- c("b1", "b0")
 
 # Run model 1 -------------------------------------------------------------
 
@@ -55,6 +50,7 @@ model1 <- here("code",
                "00_jags",
                "model1.R")
 
+Sys.time()
 mod1 <- jagsUI::jags(data = data1,
                      inits = NULL,
                      model.file = model1,
@@ -63,6 +59,7 @@ mod1 <- jagsUI::jags(data = data1,
                      n.chains = 3,
                      n.iter = 4000,
                      DIC = TRUE)
+Sys.time()
 
 mcmcplot(mod1$samples)
 
@@ -93,6 +90,7 @@ model2 <- here("code",
                "00_jags",
                "model2.R")
 
+Sys.time() #17 minutes
 mod2 <- jagsUI::jags(data = data2,
                      inits = NULL,
                      model.file = model2,
@@ -102,6 +100,7 @@ mod2 <- jagsUI::jags(data = data2,
                      n.iter = 4000,
                      DIC = TRUE)
 
+Sys.time()
 
 mcmcplot(mod2$samples)
 
@@ -137,7 +136,7 @@ mod3 <- jagsUI::jags(data = data3,
                      parameters.to.save = parms,
                      parallel = TRUE,
                      n.chains = 3,
-                     n.iter = 4000,
+                     n.iter = 4,
                      DIC = TRUE)
 
 mcmcplot(mod3$samples)
