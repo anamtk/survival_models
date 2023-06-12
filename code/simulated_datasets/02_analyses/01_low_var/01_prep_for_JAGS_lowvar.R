@@ -21,7 +21,7 @@ for(i in package.list){library(i, character.only = T)}
 
 source(here("code",
             "00_functions",
-            "tidy_functions.R"))
+            "simulation_functions.R"))
 
 # Load data ---------------------------------------------------------------
 
