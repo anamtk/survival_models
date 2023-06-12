@@ -67,6 +67,8 @@ y_function <- function(n.ind,
   
 }
 
+# Getting y data prediction -----------------------------------------------
+
 y_function2 <- function(n.ind, 
                        n.t,
                        prob_matrix){
@@ -118,6 +120,8 @@ y_function2 <- function(n.ind,
 }
 
 
+# Get n.t for model3 ------------------------------------------------------
+
 #filter data by dataset
 #sort by 1's then >1's
 #pull out the y's, t's, n.t's, and x's in that order
@@ -139,6 +143,8 @@ n.t_fun <- function(df, dataset){
   return(n.t)
 }
 
+# Get X by dataset for model3 ---------------------------------------------
+
 x_fun <- function(df, dataset){
   
   df1 <- df %>%
@@ -155,6 +161,8 @@ x_fun <- function(df, dataset){
   
   return(df1)
 }
+
+# Get t by dataset for model3 ---------------------------------------------
 
 
 t_fun <- function(df, dataset){
@@ -175,7 +183,7 @@ t_fun <- function(df, dataset){
   
 }
 
-
+# Get y by datset for model3 ----------------------------------------------
 
 y_fun <- function(df, dataset){
   
@@ -193,4 +201,107 @@ y_fun <- function(df, dataset){
 }
 
 
+# Posterior dataframe from all models -------------------------------------
+
+post_fun <- function(mod1, mod2, mod3){
+  
+  mod1_bs <- as.data.frame(mod1$quantiles) %>%
+    rownames_to_column(var = "param") %>%
+    dplyr::select(param, `50%`) %>%
+    filter(param != "deviance") %>%
+    mutate(parameter = str_sub(param, start = 1, end = 2)) %>%
+    mutate(dataset = str_sub(param, start = 4, nchar(param)-1)) %>%
+    dplyr::select(-param) %>%
+    pivot_wider(names_from = parameter, 
+                values_from = `50%`) %>%
+    mutate(model = "Total Exposure")
+  
+  mod2_bs <- as.data.frame(mod2$quantiles) %>%
+    rownames_to_column(var = "param") %>%
+    dplyr::select(param, `50%`) %>%
+    filter(param != "deviance") %>%
+    mutate(parameter = str_sub(param, start = 1, end = 2)) %>%
+    mutate(dataset = str_sub(param, start = 4, nchar(param)-1)) %>%
+    dplyr::select(-param) %>%
+    pivot_wider(names_from = parameter, 
+                values_from = `50%`) %>%
+    mutate(model = "Interval")
+  
+  mod3_bs <- as.data.frame(mod3$quantiles) %>%
+    rownames_to_column(var = "param") %>%
+    dplyr::select(param, `50%`) %>%
+    filter(param != "deviance") %>%
+    mutate(parameter = str_sub(param, start = 1, end = 2)) %>%
+    mutate(dataset = str_sub(param, start = 4, nchar(param)-1)) %>%
+    dplyr::select(-param) %>%
+    pivot_wider(names_from = parameter, 
+                values_from = `50%`) %>%
+    mutate(model = "Custom")
+  
+  mod_results <- mod1_bs %>%
+    bind_rows(mod2_bs, mod3_bs)
+  
+  return(mod_results)
+  
+}
+
+
+# Percent post ------------------------------------------------------------
+
+#how many of posteriors contain the true value?
+
+post_perc_fun <- function(mod1, mod2, mod3, parm, beta){
+  
+  df1 <- as.data.frame(mod1$quantiles) %>%
+    rownames_to_column(var = "param") %>%
+    filter(param != "deviance") %>%
+    mutate(parameter = str_sub(param, start = 1, end = 2)) %>%
+    mutate(dataset = str_sub(param, start = 4, nchar(param)-1)) %>%
+    dplyr::select(-param) %>%
+    filter(parameter == beta) %>%
+    mutate(category = case_when(parm < `2.5%` ~ "below",
+                                parm > `97.5%` ~ "above",
+                                (`2.5%` < parm & parm < `97.5%`) ~ "within")) %>%
+    mutate(model = "Total Exposure")
+  
+  df2 <- as.data.frame(mod2$quantiles) %>%
+    rownames_to_column(var = "param") %>%
+    filter(param != "deviance") %>%
+    mutate(parameter = str_sub(param, start = 1, end = 2)) %>%
+    mutate(dataset = str_sub(param, start = 4, nchar(param)-1)) %>%
+    dplyr::select(-param) %>%
+    filter(parameter == beta) %>%
+    mutate(category = case_when(parm < `2.5%` ~ "below",
+                                parm > `97.5%` ~ "above",
+                                (`2.5%` < parm & parm < `97.5%`) ~ "within")) %>%
+    mutate(model = "Interval")
+  
+  df3 <- as.data.frame(mod3$quantiles) %>%
+    rownames_to_column(var = "param") %>%
+    filter(param != "deviance") %>%
+    mutate(parameter = str_sub(param, start = 1, end = 2)) %>%
+    mutate(dataset = str_sub(param, start = 4, nchar(param)-1)) %>%
+    dplyr::select(-param) %>%
+    filter(parameter == beta) %>%
+    mutate(category = case_when(parm < `2.5%` ~ "below",
+                                parm > `97.5%` ~ "above",
+                                (`2.5%` < parm & parm < `97.5%`) ~ "within")) %>%
+    mutate(model = "Custom")
+  
+  all <- df1 %>%
+    bind_rows(df2, df3)
+  
+  sum <- all %>%
+    group_by(model, category) %>%
+    tally() %>%
+    ungroup() %>%
+    pivot_wider(names_from = category,
+                values_from = n) %>%
+    rowwise() %>%
+    replace_na(list(below = 0, within = 0, above = 0)) %>%
+    mutate(percent = within/(within + below + above))
+  
+  return(sum)
+  
+}
 
