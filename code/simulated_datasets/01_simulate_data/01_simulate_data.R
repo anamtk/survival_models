@@ -16,9 +16,10 @@ if(length(new.packages)) install.packages(new.packages)
 ## And loading them
 for(i in package.list){library(i, character.only = T)}
 
-source(here("code",
-            "00_functions",
-            "simulation_functions.R"))
+#I put this function into the code below
+# source(here("code",
+#             "00_functions",
+#             "simulation_functions.R"))
 
 # Data specifications -----------------------------------------------------
 
