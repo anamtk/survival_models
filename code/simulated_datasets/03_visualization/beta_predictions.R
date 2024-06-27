@@ -48,7 +48,7 @@ mod3low <- readRDS(here("monsoon",
 
 # Prep data ---------------------------------------------------------------
 
-#b0 <- 1.38 #gets mean value survival fairly high
+#b0 <- 0.05
 #b1 <- 0.5 #this value makes sure that ps is always >0.5 in the range of x
 
 lowvar <- post_fun(mod1 = mod1low,
@@ -57,12 +57,14 @@ lowvar <- post_fun(mod1 = mod1low,
 
 lowb0 <- ggplot(lowvar, aes(x = model, y = b0)) +
   geom_boxplot() +
-  geom_hline(yintercept = 1.38, linetype = "dashed") +
+  geom_hline(yintercept = 0.05, linetype = "dashed") +
+  #geom_hline(yintercept = 1.38, linetype = "dashed") +
   labs(title = "Low covariate variation")
 
 lowb1 <- ggplot(lowvar, aes(x = model, y = b1)) +
   geom_boxplot() +
   geom_hline(yintercept = 0.5, linetype = "dashed") +
+  #geom_hline(yintercept = 1.5, linetype = "dashed") +
   labs(title  = "Low covariate variation")
 
 
@@ -99,11 +101,13 @@ medvar <- post_fun(mod1 = mod1med,
 
 medb0 <- ggplot(medvar, aes(x = model, y = b0)) +
   geom_boxplot() +
-  geom_hline(yintercept = 1.38, linetype = "dashed") +
+  geom_hline(yintercept = 0.05, linetype = "dashed") +
+  #geom_hline(yintercept = 1.38, linetype = "dashed") +
   labs(title = "Medium covariate variation")
 
 medb1 <- ggplot(medvar, aes(x = model, y = b1)) +
   geom_boxplot() +
+  #geom_hline(yintercept = 1.5, linetype = "dashed") +
   geom_hline(yintercept = 0.5, linetype = "dashed") +
   labs(title = "Medium covariate variation")
 
@@ -141,11 +145,13 @@ highvar <- post_fun(mod1 = mod1high,
 
 highb0 <- ggplot(highvar, aes(x = model, y = b0)) +
   geom_boxplot() +
-  geom_hline(yintercept = 1.38, linetype = "dashed") +
+  geom_hline(yintercept = 0.05, linetype = "dashed") +
+  #geom_hline(yintercept = 1.38, linetype = "dashed") +
   labs(title = "High covariate variation")
 
 highb1 <- ggplot(highvar, aes(x = model, y = b1)) +
   geom_boxplot() +
+  #geom_hline(yintercept = 1.5, linetype = "dashed") +
   geom_hline(yintercept = 0.5, linetype = "dashed") +
   labs(title = "High covariate variation")
 

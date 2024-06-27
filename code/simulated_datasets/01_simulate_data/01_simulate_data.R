@@ -145,9 +145,9 @@ x.int.high.df <- as.data.frame(x.int.high) %>%
 #we make betas for fairly high survival (usually
 # above .5)
 
-b0 <- 1.38 #gets mean value survival fairly high
+b0 <- 0.05 #gets mean value survival fairly high
 b1 <- 0.5 #this value makes sure that ps is always >0.5 in the range of x
-
+#b1 <- 1.5
 #down the road, could make this portion a stochastic
 #process with betas centering around a value, and
 #regenerating them 100 times as well, for now we'll
@@ -158,7 +158,7 @@ b1 <- 0.5 #this value makes sure that ps is always >0.5 in the range of x
 #Get the survival probability for each interval for each individual site
 #for the low variability data
 ps_low <- (exp(b0 + b1*x.int.low))/(1 + exp(b0 + b1*x.int.low))
-
+ps_low <- plogis(1.38 + 0.5*x.int.low)
 # b. Med var data ---------------------------------------------------------
 
 #Get the survival probability for each interval for each individual site
@@ -317,20 +317,20 @@ y.high.all2 <- y.high.all %>%
 
 # Export datasets ---------------------------------------------------------
 
-# write.csv(y.low.all2, here("data_outputs",
-#                            "simulated",
-#                            "02_analysis_ready",
-#                            "low_var_interval_data.csv"))
-# 
-# write.csv(y.med.all2, here("data_outputs",
-#                            "simulated",
-#                            "02_analysis_ready",
-#                            "med_var_interval_data.csv"))
-# 
-# write.csv(y.high.all2, here("data_outputs",
-#                            "simulated",
-#                            "02_analysis_ready",
-#                            "high_var_interval_data.csv"))
+write.csv(y.low.all2, here("data_outputs",
+                           "simulated",
+                           "02_analysis_ready",
+                           "low_var_interval_data.csv"))
+
+write.csv(y.med.all2, here("data_outputs",
+                           "simulated",
+                           "02_analysis_ready",
+                           "med_var_interval_data.csv"))
+
+write.csv(y.high.all2, here("data_outputs",
+                           "simulated",
+                           "02_analysis_ready",
+                           "high_var_interval_data.csv"))
 
 
 # Full survey summarised data ---------------------------------------------
@@ -375,18 +375,18 @@ high.var.tot <- y.high.all2 %>%
 
 # Export total exposure datasets ------------------------------------------
 
-# write.csv(low.var.tot, here("data_outputs",
-#                            "simulated",
-#                            "02_analysis_ready",
-#                            "low_var_total_data.csv"))
-# 
-# write.csv(med.var.tot, here("data_outputs",
-#                            "simulated",
-#                            "02_analysis_ready",
-#                            "med_var_total_data.csv"))
-# 
-# write.csv(high.var.tot, here("data_outputs",
-#                             "simulated",
-#                             "02_analysis_ready",
-#                             "high_var_total_data.csv"))
+write.csv(low.var.tot, here("data_outputs",
+                           "simulated",
+                           "02_analysis_ready",
+                           "low_var_total_data.csv"))
+
+write.csv(med.var.tot, here("data_outputs",
+                           "simulated",
+                           "02_analysis_ready",
+                           "med_var_total_data.csv"))
+
+write.csv(high.var.tot, here("data_outputs",
+                            "simulated",
+                            "02_analysis_ready",
+                            "high_var_total_data.csv"))
 

@@ -97,7 +97,7 @@ mod2 <- jagsUI::jags(data = data2,
                      parameters.to.save = parms,
                      parallel = TRUE,
                      n.chains = 3,
-                     n.iter = 4000,
+                     n.iter = 1335,
                      DIC = TRUE)
 
 Sys.time()

@@ -73,12 +73,14 @@ data3 <- readRDS(here("data_outputs",
 
 #we need to extract our observed data from our dataframe
 y1 <- as.data.frame(data1$y) %>%
-  rename("Fate_class" = "data1$y") %>%
-  mutate(Nest_ID = 1:n()) 
+  mutate(Nest_ID = 1:n()) %>%
+  pivot_longer(-Nest_ID,
+               names_to = 'dataset',
+               values_to = 'Fate_class')
 
 #we need to extract our observed data from our dataframe
 y2 <- as.data.frame(data2$y) %>%
-  mutate(Nest_ID = 1:n()) %>%
+  mutate(Nest_ID = 1:n()) #%>%
   pivot_longer(1:4,
                names_to = "Interval",
                values_to = "Fate_class") %>%
