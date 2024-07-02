@@ -145,7 +145,7 @@ x.int.high.df <- as.data.frame(x.int.high) %>%
 #we make betas for fairly high survival (usually
 # above .5)
 
-b0 <- 0.05 #gets mean value survival fairly high
+b0 <- 0.5 #gets mean value survival fairly high
 b1 <- 0.5 #this value makes sure that ps is always >0.5 in the range of x
 #b1 <- 1.5
 #down the road, could make this portion a stochastic
