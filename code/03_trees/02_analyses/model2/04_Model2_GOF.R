@@ -42,7 +42,7 @@ source(here("code",
 # Load GOF model runs -----------------------------------------------------
 
 mod_GOF <- readRDS(here('monsoon',
-                        "02_kelp",
+                        "03_trees",
                         "model2",
                         "outputs",
                         "model2_GOF.RDS"))
@@ -52,20 +52,22 @@ mod_GOF <- readRDS(here('monsoon',
 
 #and we also need our original y data
 data <- readRDS(here("data_outputs",
-                     "02_kelp",
+                     "03_trees",
                      "03_JAGS_input_data",
                      "mod2_JAGS_input_data.RDS"))
 
 # Extract observed data from DF -------------------------------------------
 
 #we need to extract our observed data from our dataframe
+
+#this is pulling only the last interval - is this what we want?
 y <- as.data.frame(data$y) %>%
-  mutate(Plant_ID = 1:n()) %>%
-  pivot_longer(1:10,
+  mutate(Tree_ID = 1:n()) %>%
+  pivot_longer(1:3,
                names_to = "Interval",
                values_to = "Fate_class") %>%
   filter(!is.na(Fate_class)) %>%
-  group_by(Plant_ID) %>%
+  group_by(Tree_ID) %>%
   filter(Interval == max(Interval, na.rm = T)) %>%
   ungroup() %>%
   mutate(type = "Observed") 
@@ -80,7 +82,7 @@ yreps <- mod_GOF$sims.list$y.repkeep
 #into a dataframe with a column for iteration ID, nest ID, and interval ID
 yrep<- reshape2::melt(yreps) %>%
   rename("Iteration" = "Var1",
-         "Plant_ID" = "Var2",
+         "Tree_ID" = "Var2",
          "Fate_class" = "value") %>%
   mutate(type = "Simulated")
 
@@ -113,9 +115,9 @@ y_acc %>%
   tally()
 
 #0s:
-743/(734+863)
+0
 #1s:
-209/(208+33)
+100
 
 
 (mod2_acc_plot <- ggplot(y_acc, aes(x = Fate_class, y = P)) +
@@ -125,10 +127,10 @@ y_acc %>%
          y = "Predicted survival probability") +
     annotate(geom = "text", 
              x = 0.75, y = 0.45,
-             label = "47%") +
+             label = "0%") +
     annotate(geom = "text", 
              x = 2.25, y = 0.55,
-             label = "87%") )
+             label = "100%") )
 
 # AUC ---------------------------------------------------------------------
 

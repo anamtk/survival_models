@@ -42,7 +42,7 @@ source(here("code",
 # Load GOF model runs -----------------------------------------------------
 
 mod_GOF <- readRDS(here('monsoon',
-                      "02_kelp",
+                      "03_trees",
                       "model1",
                       "outputs",
                       "model1_GOF.RDS"))
@@ -52,7 +52,7 @@ mod_GOF <- readRDS(here('monsoon',
 
 #and we also need our original y data
 data <- readRDS(here("data_outputs",
-                     "02_kelp",
+                     "03_trees",
                       "03_JAGS_input_data",
                       "mod1_JAGS_input_data.RDS"))
 
@@ -61,7 +61,7 @@ data <- readRDS(here("data_outputs",
 #we need to extract our observed data from our dataframe
 y <- as.data.frame(data$y) %>%
   rename("Fate_class" = "data$y") %>%
-  mutate(Nest_ID = 1:n(),
+  mutate(Tree_ID = 1:n(),
          type = "Observed") 
 
 # Get yrep into DF format for graphing ------------------------------------
@@ -74,7 +74,7 @@ yreps <- mod_GOF$sims.list$yrep
 #into a dataframe with a column for iteration ID, nest ID, and interval ID
 yrep<- reshape2::melt(yreps) %>%
   rename("Iteration" = "Var1",
-         "Plant_ID" = "Var2",
+         "Tree_ID" = "Var2",
          "Fate_class" = "value") %>%
   mutate(type = "Simulated")
 
@@ -109,9 +109,9 @@ y_acc %>%
 
 #accuary
 #0s:
-1530/(1530+67)
+1/(450+1)
 #1s:
-212/(212+29)
+2627/(2627+16)
 
 (mod1_acc_plot <- ggplot(y_acc, aes(x = Fate_class, y = P)) +
     geom_hline(yintercept = 0.5, linetype = 2) +
@@ -120,10 +120,10 @@ y_acc %>%
        y = "Predicted survival probability") +
   annotate(geom = "text", 
            x = 0.75, y = 0.45,
-           label = "96%") +
+           label = "<1%") +
   annotate(geom = "text", 
            x = 2.25, y = 0.55,
-           label = "88%") )
+           label = "99%") )
   
 y_acc %>%
   group_by(Fate_class) %>%

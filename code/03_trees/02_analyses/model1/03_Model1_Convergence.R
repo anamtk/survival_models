@@ -32,7 +32,7 @@ source(here("code",
 # Load model output -------------------------------------------------------
 
 Rhat <- readRDS(here("monsoon",
-                     "02_kelp",
+                     "03_trees",
                      "model1",
                      "outputs",
                      "model1_Rhat.RDS"))

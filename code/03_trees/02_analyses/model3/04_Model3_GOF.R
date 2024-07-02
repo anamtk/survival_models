@@ -42,7 +42,7 @@ source(here("code",
 # Load GOF model runs -----------------------------------------------------
 
 mod_GOF <- readRDS(here('monsoon',
-                        "02_kelp",
+                        "03_trees",
                         "model3",
                         "outputs",
                         "model3_GOF.RDS"))
@@ -52,7 +52,7 @@ mod_GOF <- readRDS(here('monsoon',
 
 #and we also need our original y data
 data <- readRDS(here("data_outputs",
-                     "02_kelp",
+                     "03_trees",
                      "03_JAGS_input_data",
                      "mod3_JAGS_input_data.RDS"))
 
@@ -142,10 +142,10 @@ y_acc %>%
          y = "Predicted survival probability")  +
     annotate(geom = "text", 
              x = 0.75, y = 0.45,
-             label = "97%") +
+             label = "0%") +
     annotate(geom = "text", 
              x = 2.25, y = 0.55,
-             label = "88%"))
+             label = "100%"))
 
 
 y_acc %>%
@@ -163,7 +163,7 @@ iteration.num <- length(mod_GOF$sims.list$p1[,1])
 
 pred1 <- as.data.frame(t(mod_GOF$sims.list$p1))
 pred2 <- as.data.frame(t(mod_GOF$sims.list$p2))
-pred2 <- pred2[735:nrow(pred2),]
+pred2 <- pred2[256:nrow(pred2),]
 
 pred <- rbind(pred1, pred2)
 

@@ -33,7 +33,7 @@ source(here::here("code",
 # Load data ---------------------------------------------------------------
 
 model2_sum <- readRDS(here("monsoon",
-                           "02_kelp",
+                           "03_trees",
                            "model2",
                            "outputs",
                            "model2_posterior_summary.RDS"))
@@ -41,31 +41,27 @@ model2_sum <- readRDS(here("monsoon",
 
 # Posterior median and CI of all parameters -------------------------------
 
-parms <- c("b[1]", "b[2]",
+parms <- c("b1[1]", "b1[2]", 'b[2]',
            "b[3]", "b[4]","b[5]",  
-           'b6[2]', 'b6[3]',
-           'b6[4]', 'b6[5]')
+           'b[6]', 'b[7]')
 
-# "B", "BO",
-# "C", "S", "SS"
 
 mod2_est <- as.data.frame(model2_sum$quantiles) %>%
   rownames_to_column(var = "parameter") %>%
   filter(parameter %in% parms) %>%
-  mutate(parameter = case_when(parameter == "b[1]" ~ "Sea surface temp",
-                               parameter == "b[2]" ~ "Wave power",
-                               parameter == "b[3]" ~ "Stipe number",
-                               parameter == "b[4]" ~ "Holdfast diameter",
-                               parameter == "b[5]" ~ "Plant depth",
-                               parameter == 'b6[2]' ~ "Substrate = boulder",
-                               parameter == "b6[3]" ~ "Substrate = cobble",
-                               parameter == "b6[4]" ~ "Substrate = sand",
-                               parameter == "b6[5]" ~ "Substrate = shallow sand",
+  mutate(parameter = case_when(parameter == "b1[1]" ~ "Treatment: 1",
+                               parameter == "b1[2]" ~ "Treatment: 2",
+                               parameter == "b[2]" ~ "DBH",
+                               parameter == "b[3]" ~ "DBH^2",
+                               parameter == "b[4]" ~ "Basal area",
+                               parameter == "b[5]" ~ "Canopy cover",
+                               parameter == "b[6]" ~ "VPD",
+                               parameter == "b[7]" ~ "SWA",
                                TRUE ~ parameter)) %>%
   mutate(Model = "Model2_IntervalData")
   
 write.csv(mod2_est, here("data_outputs",
-                         "02_kelp",
+                         "03_trees",
                "04_posterior_summaries",
                "Model2_posteriors.csv"))
 

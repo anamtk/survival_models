@@ -97,6 +97,7 @@ y <- trees2 %>%
   mutate(response = case_when(any(response == "Dead") ~ 0,
                               TRUE ~ 1)) %>%
   ungroup() %>%
+  distinct(CoreID, response) %>%
   dplyr::select(response) %>%
   ungroup() %>%
   as_vector()
