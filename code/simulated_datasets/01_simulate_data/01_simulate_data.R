@@ -158,7 +158,7 @@ b1 <- 0.5 #this value makes sure that ps is always >0.5 in the range of x
 #Get the survival probability for each interval for each individual site
 #for the low variability data
 ps_low <- (exp(b0 + b1*x.int.low))/(1 + exp(b0 + b1*x.int.low))
-ps_low <- plogis(1.38 + 0.5*x.int.low)
+
 # b. Med var data ---------------------------------------------------------
 
 #Get the survival probability for each interval for each individual site

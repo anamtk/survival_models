@@ -48,7 +48,7 @@ mod3low <- readRDS(here("monsoon",
 
 # Prep data ---------------------------------------------------------------
 
-#b0 <- 0.05
+#b0 <- 0.5
 #b1 <- 0.5 #this value makes sure that ps is always >0.5 in the range of x
 
 lowvar <- post_fun(mod1 = mod1low,

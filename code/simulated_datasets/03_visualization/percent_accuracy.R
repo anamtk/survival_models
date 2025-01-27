@@ -90,7 +90,7 @@ mod3high <- readRDS(here("monsoon",
 
 # Prep data ---------------------------------------------------------------
 
-#b0 <- 1.38 #gets mean value survival fairly high
+#b0 <- 0.5 #gets mean value survival fairly high
 #b1 <- 0.5 #this value makes sure that ps is always >0.5 in the range of x
 
 post_perc_fun(mod1 = mod1low,
@@ -115,18 +115,18 @@ post_perc_fun(mod1 = mod1high,
 post_perc_fun(mod1 = mod1low,
               mod2 = mod2low,
               mod3 = mod3low,
-              parm = 1.38,
+              parm = 0.5,
               beta = "b0")
 
 post_perc_fun(mod1 = mod1med,
               mod2 = mod2med,
               mod3 = mod3med,
-              parm = 1.38,
+              parm = 0.5,
               beta = "b0")
 
 post_perc_fun(mod1 = mod1high,
               mod2 = mod2high,
               mod3 = mod3high,
-              parm = 1.38,
+              parm = 0.5,
               beta = "b0")
 

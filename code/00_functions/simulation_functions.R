@@ -262,6 +262,8 @@ post_perc_fun <- function(mod1, mod2, mod3, parm, beta){
     mutate(category = case_when(parm < `2.5%` ~ "below",
                                 parm > `97.5%` ~ "above",
                                 (`2.5%` < parm & parm < `97.5%`) ~ "within")) %>%
+    mutate(category = factor(category, levels = c("below", "above", "within"))) %>%
+    complete(category) %>%
     mutate(model = "Total Exposure")
   
   df2 <- as.data.frame(mod2$quantiles) %>%
@@ -274,6 +276,8 @@ post_perc_fun <- function(mod1, mod2, mod3, parm, beta){
     mutate(category = case_when(parm < `2.5%` ~ "below",
                                 parm > `97.5%` ~ "above",
                                 (`2.5%` < parm & parm < `97.5%`) ~ "within")) %>%
+    mutate(category = factor(category, levels = c("below", "above", "within"))) %>%
+    complete(category) %>%
     mutate(model = "Interval")
   
   df3 <- as.data.frame(mod3$quantiles) %>%
@@ -286,6 +290,8 @@ post_perc_fun <- function(mod1, mod2, mod3, parm, beta){
     mutate(category = case_when(parm < `2.5%` ~ "below",
                                 parm > `97.5%` ~ "above",
                                 (`2.5%` < parm & parm < `97.5%`) ~ "within")) %>%
+    mutate(category = factor(category, levels = c("below", "above", "within"))) %>%
+    complete(category) %>%
     mutate(model = "Custom")
   
   all <- df1 %>%
