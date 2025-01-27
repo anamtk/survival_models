@@ -1,0 +1,91 @@
+---
+title: "Simulation Help January 2025"
+format: html
+editor: visual
+toc: true
+embed-resources: true
+---
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+package.list <- c("here", "tidyverse", 'patchwork')
+
+## Installing them if they aren't already on the computer
+new.packages <- package.list[!(package.list %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+## And loading them
+for(i in package.list){library(i, character.only = T)}
+
+theme_set(theme_classic())
+
+source(here('code',
+            'simulated_datasets',
+            '03_visualization',
+            'beta_predictions.R'))
+```
+
+# Where we are
+
+We are working with survival data for "individuals" (e.g., a tree, a nest) taken over various intervals (days, years) and linking survival to environmental covariates. We would like to link survival to covariate values within an interval, rather than over the lifetime of an individual. The usual ways that people track survival have statistical issues (either losing covariate variation by taking an overall survival probability; or by 1-inflating data by continuing to track live individuals through multiple repeat surveys and discontinuing monitoring once an individual dies.)
+
+# The issue
+
+I've run the models (described below) on simulated data with known values for an intercept and covariate effect parameter in a regression. I've simulated data under three scenarios: low, medium, and high variation in a covariate (x). This figure shows the estimates for the intercept (b0) and x covariate effect (b1) values. The dashed lines represent the "real" values for these.
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+p3
+```
+
+There is some issue in a combination of 1) our model specification and 2) my simulation code that is leading to our "custom" model having worse predictions of intercept values than the other two models and worse covariate effects than the interval model. This is where I need help!
+
+# Reminder of why we're doing this 
+
+## How people estimate survival
+
+There are multiple ways that survival models are analyzed and in this project we are comparing a "custom" model we have generated taking the best of two types and combining into a single model.
+
+### Total exposure model
+
+The first type of model is one we're calling the "total exposure" model. This model is a logistic regression of the end "fate" of an individual (alive/dead) at the end of a study. These models are simple and common but have one fatal error: if an individual is re-surveyed multiple times throughout a study, this model ignores any changes in covariates throughout those survey intervals, thus missing likely important covariate variation that could differentially impact survival.
+
+### The interval model
+
+This model was developed by wildlife biologists to estimate "daily nest survival" for birds. Again, it is a logistic regression. However, instead of treating final fates as "data", this model treats the status (alive/dead) of an individual at each survey interval as data. Thus, while these models allow you to incorporate interval-specific covariate values (capturing variation in covariates through time), they have the issue of being "one-inflated" (individuals get an alive, 1, value for each interval in which they are surveyed and alive and they continue to be tracked; individuals that die are no longer tracked after a dead, 0, value)
+
+### Custom model
+
+Our custom model is a hybrid of these two models. So, it is still a logistic regression. Individuals that are only tracked in one survey interval and then live/die are modeled like the total exposure model. Individuals that survive through multiple survey intervals still only have one value (final alive/dead status), but then the survival probability for that end value is based on the product of their survival across all intervals in which they are tracked.
+
+# How I simulated datasets
+
+Here is how I approached simulating datasets:
+
+1.  Simulated individual level "nominal" covariate (x) values for site i: $x_i \sim Normal(0,1)$
+2.  Simulate interval-level, j, x values given a site-level "nominal" value:
+    1.  small variation: $X_{i,j} \sim Normal(x_i,0.01)$
+    2.  medium variation: $X_{i,j} \sim Normal(x_i,0.5)$
+    3.  large variation: $X_{i,j} \sim Normal(x_i,1)$
+3.  Plug these X\[i,j\]'s into a logistic regression with interval survival, *p~s~* (simplified so that each "interval" is one time point (year/day)), of the form: $logit(p_{s,i,j}) = \beta_0 + \beta_1 \times X_{i,j}$
+4.  Generate 100 datasets based on this regression using: $y_{i,j,d} \sim Bernoulli(p_{s,i,j})$
+5.  Cut off the "time series" for each individual in each of these datasets after the first "0" value or after the maximum number of intervals (10).
+
+# Links to code to help debug
+
+[Total Exposure Model](https://github.com/anamtk/survival_models/blob/main/code/simulated_datasets/02_analyses/00_jags/model1.R)
+
+[Interval Model](https://github.com/anamtk/survival_models/blob/main/code/simulated_datasets/02_analyses/00_jags/model2.R)
+
+[Custom Model](https://github.com/anamtk/survival_models/blob/main/code/simulated_datasets/02_analyses/00_jags/model3.R)
+
+[Simulation Code](https://github.com/anamtk/survival_models/blob/main/code/simulated_datasets/01_simulate_data/01_simulate_data.R)
+
+[Notes from our meeting about the custom model](https://github.com/anamtk/survival_models/blob/main/notes/custom_prob_notes.pdf)
+
+["Nicer" version of the model specification](https://github.com/anamtk/survival_models/blob/main/notes/Nest_survival_custom_interval_model.pdf)
