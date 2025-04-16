@@ -22,6 +22,8 @@ source(here("code",
 
 theme_set(theme_bw())
 
+b0 <- 0.5
+b1 <- 4.5
 
 # Low var -----------------------------------------------------------------
 
@@ -48,8 +50,6 @@ mod3low <- readRDS(here("monsoon",
 
 # Prep data ---------------------------------------------------------------
 
-#b0 <- 0.5
-#b1 <- 0.5 #this value makes sure that ps is always >0.5 in the range of x
 
 lowvar <- post_fun(mod1 = mod1low,
          mod2 = mod2low,
@@ -57,17 +57,15 @@ lowvar <- post_fun(mod1 = mod1low,
 
 lowb0 <- ggplot(lowvar, aes(x = model, y = b0)) +
   geom_boxplot() +
-  geom_hline(yintercept = 0.5, linetype = "dashed") +
-  #geom_hline(yintercept = 1.38, linetype = "dashed") +
-  labs(title = "Low covariate variation") +
-  ylim(-18,2)
+  geom_hline(yintercept = b0, linetype = "dashed") +
+  labs(title = "Low covariate variation")  +
+  ylim(-13, 6)
 
 lowb1 <- ggplot(lowvar, aes(x = model, y = b1)) +
   geom_boxplot() +
-  geom_hline(yintercept = 0.5, linetype = "dashed") +
-  #geom_hline(yintercept = 1.5, linetype = "dashed") +
+  geom_hline(yintercept = b1, linetype = "dashed") +
   labs(title  = "Low covariate variation") +
-  ylim(-0.1, 6)
+  ylim(-28, 34)
 
 
 # Med var -----------------------------------------------------------------
@@ -103,17 +101,15 @@ medvar <- post_fun(mod1 = mod1med,
 
 medb0 <- ggplot(medvar, aes(x = model, y = b0)) +
   geom_boxplot() +
-  geom_hline(yintercept = 0.5, linetype = "dashed") +
-  #geom_hline(yintercept = 1.38, linetype = "dashed") +
-  labs(title = "Medium covariate variation") +
-  ylim(-18,2)
+  geom_hline(yintercept = b0, linetype = "dashed") +
+  labs(title = "Medium covariate variation")  +
+  ylim(-13, 6)
 
 medb1 <- ggplot(medvar, aes(x = model, y = b1)) +
   geom_boxplot() +
-  #geom_hline(yintercept = 1.5, linetype = "dashed") +
-  geom_hline(yintercept = 0.5, linetype = "dashed") +
+  geom_hline(yintercept = b1, linetype = "dashed") +
   labs(title = "Medium covariate variation")+
-  ylim(-0.1, 6)
+  ylim(-28, 34)
 
 
 # High var ----------------------------------------------------------------
@@ -149,17 +145,15 @@ highvar <- post_fun(mod1 = mod1high,
 
 highb0 <- ggplot(highvar, aes(x = model, y = b0)) +
   geom_boxplot() +
-  geom_hline(yintercept = 0.5, linetype = "dashed") +
-  #geom_hline(yintercept = 1.38, linetype = "dashed") +
-  labs(title = "High covariate variation") +
-  ylim(-18,2)
+  geom_hline(yintercept = b0, linetype = "dashed") +
+  labs(title = "High covariate variation")  +
+  ylim(-13, 6)
 
 highb1 <- ggplot(highvar, aes(x = model, y = b1)) +
   geom_boxplot() +
-  #geom_hline(yintercept = 1.5, linetype = "dashed") +
-  geom_hline(yintercept = 0.5, linetype = "dashed") +
-  labs(title = "High covariate variation")+
-  ylim(-0.1, 6)
+  geom_hline(yintercept = b1, linetype = "dashed") +
+  labs(title = "High covariate variation") +
+  ylim(-28, 34)
 
 
 
@@ -169,4 +163,4 @@ p1 <- lowb0 + medb0 + highb0
 
 p2 <- lowb1 + medb1 + highb1
 
-p3 <- (lowb0 + medb0 + highb0)/(lowb1 + medb1 + highb1)
+(p3 <- (lowb0 + medb0 + highb0)/(lowb1 + medb1 + highb1))

@@ -85,7 +85,7 @@ model{
       #daily survival regression
       #daily survival = ps[i,j]
       
-      logit(ps[i,j,d]) <- b0[d] + b1[d]*x[i,j,d]
+      logit(ps[i,j,d]) <- b0[d] + b1[d]*x[j,d]
     }
   }
   

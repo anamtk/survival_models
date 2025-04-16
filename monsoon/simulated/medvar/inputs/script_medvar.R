@@ -123,11 +123,12 @@ data3_list <- list(n.datasets = data3$n.datasets,
                    n.t = data3$n.t,
                    y = data3$y,
                    x = data3$x,
-                   t = data3$t)
+                   t = data3$t,
+                   y2 = data3$y2)
 
 mod3 <- jagsUI::jags(data = data3_list,
                      inits = NULL,
-                     model.file = "/scratch/atm234/survival_models/sim/models/model3.R",
+                     model.file = "/scratch/atm234/survival_models/sim/models/model3_April2025.R",
                      parameters.to.save = parms,
                      parallel = TRUE,
                      n.chains = 3,

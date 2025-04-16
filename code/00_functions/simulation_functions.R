@@ -130,11 +130,19 @@ y_function2 <- function(n.ind,
 
 n.t_fun <- function(df, dataset){
   
+  # df1 <- df %>%
+  #   filter(Dataset == dataset) %>%
+  #   group_by(ID) %>%
+  #   mutate(n.t = n()) %>%
+  #   arrange(n.t) %>%
+  #   ungroup() %>%
+  #   distinct(ID, n.t)
+  
   df1 <- df %>%
     filter(Dataset == dataset) %>%
     group_by(ID) %>%
+    distinct(interval) %>%
     mutate(n.t = n()) %>%
-    arrange(n.t) %>%
     ungroup() %>%
     distinct(ID, n.t)
   
@@ -162,6 +170,26 @@ x_fun <- function(df, dataset){
   return(df1)
 }
 
+
+# Nday function -----------------------------------------------------------
+
+day_fun <- function(df, dataset){
+  
+  df1 <- df %>%
+    filter(Dataset == dataset)%>%
+    group_by(ID, interval) %>%
+    mutate(n.day = n()) %>%
+    ungroup() %>%
+    distinct(ID, interval, n.day) %>%
+    pivot_wider(names_from = interval,
+                values_from = n.day) %>%
+    dplyr::select(-ID) %>%
+    as.matrix()
+  
+  return(df1)
+}
+
+
 # Get t by dataset for model3 ---------------------------------------------
 
 
@@ -169,8 +197,15 @@ t_fun <- function(df, dataset){
   
   df1 <- df %>%
     filter(Dataset == dataset) %>%
-    group_by(ID) %>%
+    mutate(interval = factor(interval, levels = c('1', '2',
+                                                  '3', '4',
+                                                  '5', '6',
+                                                  '7', '8',
+                                                  '9', '10'))) %>%
+    group_by(ID) %>%  
     mutate(n.t = n()) %>%
+    complete(interval) %>%
+    mutate(interval = as.numeric(interval)) %>%
     arrange(n.t) %>%
     ungroup() %>%
     dplyr::select(ID, interval, t) %>%
@@ -188,17 +223,20 @@ t_fun <- function(df, dataset){
 y_fun <- function(df, dataset){
   
   y <- df %>%
-    filter(Dataset == dataset) %>%
+    filter(Dataset == dataset)  %>%
+    group_by(ID, interval) %>%
+    mutate(fate = case_when(any(fate == 0) ~ 0,
+                            TRUE ~ fate)) %>%
+    ungroup() %>% 
+    distinct(Dataset, ID, interval, fate) %>%
     group_by(ID) %>%
-    mutate(n.t = n()) %>%
-    arrange(n.t) %>%
     filter(interval == max(interval)) %>%
     ungroup() %>%
     dplyr::select(fate) %>%
     as_vector()
   
   return(y)
-}
+} 
 
 
 # Posterior dataframe from all models -------------------------------------

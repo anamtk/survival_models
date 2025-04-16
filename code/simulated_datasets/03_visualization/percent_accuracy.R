@@ -96,19 +96,19 @@ mod3high <- readRDS(here("monsoon",
 post_perc_fun(mod1 = mod1low,
               mod2 = mod2low,
               mod3 = mod3low,
-              parm = 0.5,
+              parm = 4.5,
               beta = "b1")
 
 post_perc_fun(mod1 = mod1med,
               mod2 = mod2med,
               mod3 = mod3med,
-              parm = 0.5,
+              parm = 4.5,
               beta = "b1")
 
 post_perc_fun(mod1 = mod1high,
               mod2 = mod2high,
               mod3 = mod3high,
-              parm = 0.5,
+              parm = 4.5,
               beta = "b1")
 
 

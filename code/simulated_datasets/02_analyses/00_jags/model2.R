@@ -20,7 +20,7 @@ model{
       p.int[i,j,d] <- pow(ps[i,j,d], t[i,j,d])
       
       logit(ps[i,j,d]) <- 
-        b0[d] + b1[d]*x[i,j,d]
+        b0[d] + b1[d]*x[j,d]
       
       #-------------------------------------## 
       # Model Goodness-of-fit objects ###

@@ -5,6 +5,38 @@
 #this script simulates datasets for testing the different
 #survival model structures
 
+#notes from meeting February 2025:
+# Treat 100 individuals as sharing the same covariate 
+##time series (same “site”)
+# When you simulate all the datasets – provides variability
+##around that
+# 
+# Simulate from a zero normal
+# Then standardize
+# Then multiply by the variation you want 
+##(0.1, or 0.01) – don’t have to do anything in the 
+##large variability case
+# 
+# In real data – what proportion of individuals survive vs. 
+##live to the end?
+#   
+#   Ideally in simulations – would want ~1/2 to die
+# 
+# Set b0 == 0 – then ~half of individuals die/live
+# 
+# On simulated datasets – figure out what proportion 
+##is dying/living by the end – you want a balance of many 
+##surviving the first census but a majority dying by the 
+##last census. 
+# 
+# Want b1 to be the same across variability in covariate levels.
+# But will need to play around with values for b0 and b1 
+# 
+# Check histograms of survival values to make sure that 
+##there is variability and that variability increases with
+##increased covariate variability
+
+
 # Load packages -----------------------------------------------------------
 
 package.list <- c("here", "tidyverse")

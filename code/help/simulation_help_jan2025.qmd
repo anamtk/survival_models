@@ -45,7 +45,7 @@ p3
 
 There is some issue in a combination of 1) our model specification and 2) my simulation code that is leading to our "custom" model having worse predictions of intercept values than the other two models and worse covariate effects than the interval model. This is where I need help!
 
-# Reminder of why we're doing this 
+# Reminder of why we're doing this
 
 ## How people estimate survival
 

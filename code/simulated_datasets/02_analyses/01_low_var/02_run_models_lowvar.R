@@ -57,7 +57,7 @@ mod1 <- jagsUI::jags(data = data1,
                      parameters.to.save = parms,
                      parallel = TRUE,
                      n.chains = 3,
-                     n.iter = 4000,
+                     n.iter = 100,
                      DIC = TRUE)
 Sys.time()
 
@@ -97,7 +97,7 @@ mod2 <- jagsUI::jags(data = data2,
                      parameters.to.save = parms,
                      parallel = TRUE,
                      n.chains = 3,
-                     n.iter = 1335,
+                     n.iter = 1,
                      DIC = TRUE)
 
 Sys.time()
@@ -128,7 +128,7 @@ model3 <- here("code",
                "simulated_datasets",
                "02_analyses",
                "00_jags",
-               "model3.R")
+               "model3_April2025_daily.R")
 
 mod3 <- jagsUI::jags(data = data3,
                      inits = NULL,
@@ -136,7 +136,7 @@ mod3 <- jagsUI::jags(data = data3,
                      parameters.to.save = parms,
                      parallel = TRUE,
                      n.chains = 3,
-                     n.iter = 4,
+                     n.iter = 1,
                      DIC = TRUE)
 
 mcmcplot(mod3$samples)

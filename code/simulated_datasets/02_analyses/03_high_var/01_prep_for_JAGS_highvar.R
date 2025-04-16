@@ -106,7 +106,7 @@ n.t <- high %>%
   as.matrix
 
 #Creating arrays for other data bits
-n.ind <- 300 #individuals
+n.ind <- 30 #individuals
 n.int <- 10 #max number of intervals per individual
 n.data <- 100 #number of datasets
 
@@ -119,22 +119,23 @@ y <- array(NA, dim = c(n.ind, n.int, n.data))
 
 #fill array based on id, interval, and dataset for each row
 for(i in 1:dim(high)[1]){
-  y[ID[i], interval[i], Dataset[i]] <- high[i, 5] #column 5 is y data
+  y[ID[i], interval[i], Dataset[i]] <- high[i, 7] #column 7 is y data
 }
 
 #Do the same for the t data array
 t <- array(NA, dim = c(n.ind, n.int, n.data))
 
 for(i in 1:dim(high)[1]){
-  t[ID[i], interval[i], Dataset[i]] <- high[i, 7]
+  t[ID[i], interval[i], Dataset[i]] <- high[i, 8]
 }
 
-#do the same as for the y data as for the x data array
-x <- array(NA, dim = c(n.ind, n.int, n.data))
-
-for(i in 1:dim(high)[1]){
-  x[ID[i], interval[i], Dataset[i]] <- high[i, 6]
-}
+#x is by site and dataset
+x <- high %>%
+  distinct(Dataset, interval, x) %>%
+  pivot_wider(names_from = "Dataset",
+              values_from = 'x') %>%
+  column_to_rownames(var = "interval") %>%
+  as.matrix()
 
 #list of data for model 2
 data2 <- list(n.datasets = 100,
@@ -152,7 +153,8 @@ saveRDS(data2, here("data_outputs",
 
 
 # Model 3 -----------------------------------------------------------------
-
+datasets <- as.data.frame(1:100) %>%
+  rename('Dataset' = `1:100`)
 #number of individuals per dataset with only one interval
 n.indiv1 <- high %>%
   group_by(ID, Dataset) %>%
@@ -162,6 +164,9 @@ n.indiv1 <- high %>%
   group_by(Dataset) %>%
   tally() %>%
   ungroup() %>%
+  full_join(datasets, by = "Dataset") %>%
+  replace_na(list(n = 0)) %>%
+  arrange(Dataset) %>%
   dplyr::select(n) %>%
   as_vector()
 
@@ -197,17 +202,12 @@ for(i in 1:n.data){
 n.t <- bind_cols(n.int) %>%
   as.matrix()
 
-#empty list for covariates for individuals x survey periods 
-# x datasets array
-xs <- list()
-
-#use custom x_fun - which exports a matrix per dataset
-for(i in 1:n.data){
-  xs[[i]] <- x_fun(df = high, dataset = i)
-}
-
-#make this into an array with the correct dimensions
-x <- array(unlist(xs), dim = c(nrow(xs[[1]]), ncol(xs[[1]]), length(xs)))
+x <- high %>%
+  distinct(Dataset, interval, x) %>%
+  pivot_wider(names_from = "Dataset",
+              values_from = 'x') %>%
+  column_to_rownames(var = "interval") %>%
+  as.matrix()
 
 #repeat the x process to get the ID x interval x Dataset array for t
 ts <- list()
@@ -236,7 +236,8 @@ data3 <- list(n.datasets = 100,
               n.t = n.t,
               y = y,
               x = x,
-              t = t)
+              t = t,
+              y2 = y)
 
 #export it
 saveRDS(data3, here("data_outputs",
