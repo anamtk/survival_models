@@ -23,19 +23,19 @@ for(i in package.list){library(i, character.only = T)}
 data1 <- readRDS(here("data_outputs",
                     "simulated",
                     "03_jags_input_data",
-                    "Model1low_JAGS_data.RDS"))
+                    "Model1high_JAGS_data.RDS"))
 
 
 data2 <- readRDS(here("data_outputs",
                     "simulated",
                     "03_jags_input_data",
-                    "Model2low_JAGS_data.RDS"))
+                    "Model2high_JAGS_data.RDS"))
 
 
 data3 <- readRDS(here("data_outputs",
                     "simulated",
                     "03_jags_input_data",
-                    "Model3low_JAGS_data.RDS"))
+                    "Model3high_JAGS_data.RDS"))
 
 
 # Set up for jags models --------------------------------------------------
@@ -100,8 +100,8 @@ mod2 <- jagsUI::jags(data = data2,
                      n.iter = 1,
                      DIC = TRUE)
 
-# Sys.time()
-# 
+Sys.time()
+
 # mcmcplot(mod2$samples)
 # 
 # sum2 <- summary(mod2$samples)
@@ -120,7 +120,7 @@ mod2 <- jagsUI::jags(data = data2,
 # saveRDS(mod2update, here('data_outputs',
 #                          'simulated',
 #                          '04_posterior_summaries',
-#                         'mod2low_GOFmodel.RDS'))
+#                          'mod2low_GOFmodel.RDS'))
 # Run model 3 -------------------------------------------------------------
 
 

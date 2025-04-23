@@ -110,7 +110,7 @@ n.t <- low.int %>%
               values_from = n.t) %>%
   arrange(ID) %>% 
   column_to_rownames(var = "ID") %>%
-  as.matrix
+  as.matrix()
 
 #Creating arrays for other data bits
 n.ind <- 30 #individuals
@@ -166,17 +166,11 @@ rm(list = 'n.indiv', 'y', 'x', 't')
 datasets <- as.data.frame(1:100) %>%
   rename('Dataset' = `1:100`) 
 
-#UPDATE FROM HERE FOR DAILY MODEL:
-#FIX RIGHT NOW:
-#Seems like n.t is giving a different number of individuals
-#with only one interval than when I get n.indiv1. FIgure out 
-#what is going ONNNNN
-
 #need to make sure this dataset is ordered by individuals with
 #one interval first and multiple intervals next
 lowdayid <- low.day %>%
   group_by(ID, Dataset) %>%
-  mutate(n.t = n()) %>%
+  mutate(n.t = length(unique(interval))) %>%
   arrange(n.t) %>%
   distinct(Dataset, ID) %>%
   ungroup() %>%
@@ -185,17 +179,20 @@ lowdayid <- low.day %>%
 
 low.day2 <- low.day %>%
   group_by(ID, Dataset) %>%
-  mutate(n.t = n()) %>%
+  mutate(n.t = length(unique(interval))) %>%
   arrange(n.t) %>%
   ungroup() %>%
   left_join(lowdayid, by = c("Dataset", "ID")) %>%
   dplyr::select(-ID) %>%
-  rename(ID = ID2)
+  rename(ID = ID2) %>%
+  group_by(ID, Dataset, interval) %>%
+  arrange(ID, Dataset, interval, day) %>%
+  mutate(day.of.int = 1:n()) %>%
+  ungroup() %>%
+  as.data.frame() 
 
 #number of individuals per dataset with only one interval
 n.indiv1 <- low.day2 %>%
-  group_by(ID, Dataset) %>%
-  mutate(n.t = n()) %>%
   distinct(ID, Dataset, n.t) %>%
   filter(n.t == 1) %>%
   group_by(Dataset) %>%
@@ -213,7 +210,7 @@ n.indiv <- low.day2 %>%
   distinct(ID) %>%
   tally() %>%
   as_vector()
-  
+
 #to make matrices and arrays, need to use some custom functions
 #so that the fact that different individuals in different datasets
 #have one survey or more than one survey (e.g. individual 5
@@ -224,54 +221,115 @@ n.indiv <- low.day2 %>%
 #but maintaining the covariate info that generated the data))
 #matrix of individual x dataset
 
+#n.t[i,d]
+n.t <- low.day2 %>%
+  distinct(Dataset, ID, interval) %>%
+  group_by(Dataset, ID) %>%
+  filter(interval == max(interval)) %>%
+  ungroup() %>%
+  pivot_wider(names_from = "Dataset",
+              values_from = "interval") %>%
+  dplyr::select(-ID) %>%
+  as.matrix()
+
+#FOR ALL ARRAYS: Indexing dataframes AND 
+#variables to loop through for for loops
+low.day2 <- as.data.frame(low.day2)
+n.ind <- 30 #individuals
+n.int <- max(low.day2$interval) #max number of intervals per individual
+n.dy <- max(low.day2$day)
 n.data <- 100 #number of datasets
 
-#empty list for the number of surveys per individual
-n.int <- list()
+#arrays:
+#i - individual
+#j - interval
+#d - dataset
+#k - day
+day.index.df <- low.day2 %>%
+  group_by(ID, interval, Dataset) %>%
+  mutate(start = min(day),
+         end = max(day)) %>%
+  ungroup() %>% 
+  distinct(ID, interval, Dataset, start, end) %>%
+  as.data.frame()
 
-#fill with custom function that filters out each dataset at a 
-#time and gets this vector, appending it into our list
-for(i in 1:n.data){
-  n.int[[i]] <- n.t_fun(df = low.day2, dataset = i)
+Id <- day.index.df$ID #define a vector of ids
+Int <- day.index.df$interval #vector of days in interval
+Datset <- day.index.df$Dataset
+
+#start.day[i,j,d] values from 1-24 (more like 3-22)
+start.day <- array(NA, dim = c(n.ind, n.int, n.data))
+
+#fill array based on id, interval, day, and dataset for each row
+for(i in 1:dim(day.index.df)[1]){
+  start.day[Id[i], Int[i], Datset[i]] <- day.index.df[i, 4] 
 }
 
-#bind this list of vectors together into a matrix
-n.t <- bind_cols(n.int) %>%
-  as.matrix()
+#end.day[i,j,d] values from 1-24 (more like 3-24)
+end.day <- array(NA, dim = c(n.ind, n.int, n.data))
 
-#empty list for covariates for individuals x survey periods 
-# x datasets array
-x <- low.day2 %>%
-  distinct(Dataset, day, x) %>%
-  pivot_wider(names_from = "Dataset",
-              values_from = 'x') %>%
-  column_to_rownames(var = "day") %>%
-  as.matrix()
+#fill array based on id, interval, day, and dataset for each row
+for(i in 1:dim(day.index.df)[1]){
+  end.day[Id[i], Int[i], Datset[i]] <- day.index.df[i, 5] 
+}
 
-#THIS IS BROKEN CURRENTLY:
-#need to get max number of days across individuals and datasets
-n.days <- max(low.day2$day)
-
-#start day and end day for each interval in each dataset j,d
-start.day <- low.day2 %>%
-  distinct(Dataset, day, interval) %>%
-  group_by(Dataset, interval) %>%
-  filter(day == min(day)) %>%
-  pivot_wider(names_from = "Dataset",
-              values_from = 'day') %>%
-  ungroup() %>%
-  dplyr::select(-interval) %>%
-  as.matrix()
-
-end.day <- low.day2 %>%
-  distinct(Dataset, day, interval) %>%
-  group_by(Dataset, interval) %>%
+#n.days[i,d]
+n.days <- low.day2 %>%
+  group_by(ID, Dataset) %>%
   filter(day == max(day)) %>%
-  pivot_wider(names_from = "Dataset",
-              values_from = 'day') %>%
+  dplyr::select(ID, Dataset, day) %>%
   ungroup() %>%
-  dplyr::select(-interval) %>%
+  pivot_wider(names_from = "Dataset",
+              values_from = "day") %>%
+  column_to_rownames(var= "ID") %>%
   as.matrix()
+
+#n.days[i,j,d]
+# days <- list()
+# 
+# for(i in 1:n.data){
+#   days[[i]] <- n_day_fun(df = low.day2, dataset = i)
+# }
+
+# n.days <- array(unlist(days),
+#                  dim = c(nrow(days[[1]]),
+#                          ncol(days[[1]]),
+#                          length(days)))
+
+#x[i,k,d]
+
+ID <- low.day2$ID #define a vector of ids
+day <- low.day2$day #vector of days in interval
+datset <- low.day2$Dataset
+
+#create empty y array with the appropriate dimensions
+x <- array(NA, dim = c(n.ind, n.dy, n.data))
+
+#fill array based on id, interval, day, and dataset for each row
+for(i in 1:dim(low.day2)[1]){
+  x[ID[i], day[i], datset[i]] <- low.day2[i, 4] 
+}
+
+# #x[i,j,k,d]
+# low.day2 <- as.data.frame(low.day2)
+# n.ind <- 30 #individuals
+# n.int <- max(low.day2$interval) #max number of intervals per individual
+# n.dy <- max(low.day2$day.of.int)
+# n.data <- 100 #number of datasets
+# 
+# ID <- low.day2$ID #define a vector of ids
+# inter<- low.day2$interval #vector of intervals
+# dayofint <- low.day2$day.of.int #vector of days in interval
+# datset <- low.day2$Dataset
+# 
+# #create empty y array with the appropriate dimensions
+# x <- array(NA, dim = c(n.ind, n.int, n.dy, n.data))
+# 
+# #fill array based on id, interval, day, and dataset for each row
+# for(i in 1:dim(low.day2)[1]){
+#   x[ID[i], inter[i], dayofint[i], datset[i]] <- low.day2[i, 4] 
+# }
+#   
 
 #use y_fun to get a matrix of y x Datasets
 ys <- list()

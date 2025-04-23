@@ -28,7 +28,7 @@ model{
     # #Residuals
     resid_1[i,d] <- y[i,d] - pi1[i,d]
     # 
-  }
+  } #indiv1
   
   #for nests with >1 intervals:
   for(i in (n.indiv1[d]+1):n.indiv){
@@ -71,31 +71,70 @@ model{
     resid_2[i,d] <- y[i,d] - pi2[i,d]
     # 
     
-  }
+  } #indiv
   
   for(i in 1:n.indiv){
     for(j in 1:n.t[i,d]){
-      
-      #each interval survival, p.int, is product of 
+
+      #each interval survival, p.int, is product of
       #daily survival for all the days in that interval
-      p.int[i,j,d] <- prod(ps[i,j,start.day[j,d]:end.day[j,d],d])
-      
-      for(k in 1:n.days){
-      #this interval survival then goes back into 
+      p.int[i,j,d] <- prod(ps[i,start.day[i,j,d]:end.day[i,j,d],d])
+
+    } #n.t
+    #FIX THE DAY INDEXING IT IS BROKEN GRRR
+    for(k in 1:n.days[i,d]){
+      #this interval survival then goes back into
       # the overall nest survival with custom
       #probabilities above in the nest loops
-      
+
       #daily survival regression
       #daily survival = ps[i,j]
-      
-      logit(ps[i,j,k,d]) <- b0[d] + b1[d]*x[k,d]
-    }
-    }
-  }
+
+      logit(ps[i,k,d]) <- b0[d] + b1[d]*x[i,k,d]
+
+
+      x[i,k,d] ~ dnorm(mu.x, tau.x)
+
+    } #n.days
+  } #n.indiv
+    # 
+    # 
+    # for(i in 1:n.indiv){
+    #   for(j in 1:n.t[i,d]){
+    # 
+    #     #each interval survival, p.int, is product of
+    #     #daily survival for all the days in that interval
+    #     p.int[i,j,d] <- prod(ps[i,j,1:n.days[i,j,d],d])
+    # 
+    #     #FIX THE DAY INDEXING IT IS BROKEN GRRR
+    #     for(k in 1:n.days[i,j,d]){
+    #       #this interval survival then goes back into
+    #       # the overall nest survival with custom
+    #       #probabilities above in the nest loops
+    # 
+    #       #daily survival regression
+    #       #daily survival = ps[i,j]
+    # 
+    #       logit(ps[i,j,k,d]) <- b0[d] + b1[d]*x[i,j,k,d]
+    # 
+    # 
+    #       x[i,j,k,d] ~ dnorm(mu.x, tau.x)
+    # 
+    #     } #n.days
+    #   } #n.t
+    # } #n.indiv
   
   b0[d] ~ dnorm(0, 1E-2)
 
   b1[d] ~ dnorm(0, 1E-2)
-  }
+  
+
+  
+  } #ndatasets
+  # 
+  mu.x ~ dunif(-10, 10)
+  sig.x ~ dunif(0, 20)
+  tau.x <- pow(sig.x, -2)
+  
   
 }

@@ -47,12 +47,30 @@ n.indiv <- 30
 b0 <- 2.1
 b1 <- 3.5
 
-sim_xy_function <- function(n.t,
-                         var_level,
-                         b0, 
-                         b1,
-                         n.ind){
+#number of simulated datasets
+n.datasets <- 100
 
+#UPDATE:::
+#simulate x data for every day of every interval
+#in every dataset and KEEP them all
+
+#Then generate y data for those x's as we've done - then, 
+#"fill" 0's for intervals in which the individual "died"
+#since this is the way the surveys would have been performed
+#so for the last interval, we get all days in that interval, 
+#and all are set to 0 - since we don't know which day in
+#the total survey intervaal an individual died. 
+
+#then combine:
+#1. daily x data for each individual in each dataset
+#in each day with interval IDs recoginzed
+#2. interval level survival data with dataset, ID, and 
+#interval ID info
+
+sim_x_function <- function(n.t,
+                           var_level,
+                           b0, 
+                           b1){
   
   #get x for each interval
   x1 <- rnorm(n.t, mean = 0, sd = 1)
@@ -77,38 +95,35 @@ sim_xy_function <- function(n.t,
     ungroup() %>%
     left_join(interval, by = "day")
   
-  #generate y data for each of those intervals
-  #with binomial likelihood based on survival
-  #probability
-  ind.df <- expand.grid(1:n.ind, 1:n.t) %>%
-    rename(ID = Var1,
-           day = Var2) %>%
-    left_join(x.df, by = "day") %>%
-    rowwise() %>%
-    mutate(fate = rbinom(n(), 1, ps))
+  return(x.df)
   
-  # #DATA TRUNCATION STEP
-  # #the data are 1-0 data across a set of survey intervals per individual
-  # #Right now, this means that an indiviudal can be 1 - 0 - 1, which is not
-  # #possible (once dead, they stay dead)
-  # #these next steps get rid of any intervals after the first "dead" 
-  # #observation per individual
-  # 
-  # #which individuals are alive at the end of the intervals?
-  # #subset just those individuals in a dataframe
+}
+
+
+sim_y_function <- function(n.ind,
+                           n.t,
+                           n.data,
+                           x.df){
+  
+  ind.df <- expand.grid(1:n.ind, 1:n.t, 1:n.data)%>%
+    rename(ID = Var1,
+           day = Var2,
+           Dataset = Var3) %>%
+    mutate(Dataset = as.character(Dataset)) %>%
+    left_join(x.df, by = c("day", "Dataset")) %>%
+    rowwise() %>%
+    mutate(fate = rbinom(n(), 1, ps)) %>%
+    ungroup()
+  
   alive <- ind.df %>%
-    group_by(ID) %>%
+    group_by(ID, Dataset) %>%
     #filter out IDs where all intervals == 1
     filter(all(fate == 1)) %>%
     ungroup()
-  # 
-  # #which individuals are dead at some point in any
-  # #interval?
-  # #filter those out and then filter out any intervals
-  # #after the first one in which they are dead
+  
   dead <- ind.df %>%
     #arrange(day) %>%
-    group_by(ID) %>%
+    group_by(ID, Dataset) %>%
     #filter out just IDs where there is at least one zero
     filter(any(fate == 0)) %>%
     #Get a True-False column that finds all 0's per indiivudla site
@@ -122,188 +137,115 @@ sim_xy_function <- function(n.t,
     ungroup() %>%
     #remove gropuing column
     dplyr::select(-first_0)
-  # 
-  # #combine these into one dataframe
+  
   df2 <- alive %>%
-    bind_rows(dead)
-  # 
-  return(df2)
+    bind_rows(dead) %>%
+    dplyr::select(ID, day, Dataset, interval, fate)
+  
+  ind.df2 <- ind.df %>%
+    dplyr::select(-fate) %>%
+    left_join(df2, by = c("ID", "day", "Dataset",
+                          "interval"))%>%
+    group_by(ID, interval, Dataset) %>%
+    mutate(fate = case_when(any(fate == 0) ~ 0,
+                            TRUE ~ fate)) %>%
+    ungroup() %>%
+    filter(!is.na(fate))
+  
+  return(ind.df2)
+  
   
 }
 
-#based on one datset, seems to work pretty well
-#for getting survival proportions that we want (see
-#above notes)
-# test_low <- sim_xy_function(b0 = b0,
-#                             b1 = b1,
-#                             n.t = 10,
-#                             var_level = 0.01,
-#                             n.ind = 30)
-# 
-# #total fate ~ equal
-# test_low %>%
-#   group_by(ID) %>%
-#   filter(interval == max(interval)) %>%
-#   group_by(fate) %>%
-#   tally()
-# 
-# #some live through first interval
-# test_low %>%
-#   filter(interval == 1) %>%
-#   group_by(fate) %>%
-#   tally()
-# 
-# test_low %>%
-#   group_by(interval, fate) %>%
-#   tally()
-# 
-# test_med <- sim_xy_function(b0 = b0,
-#                             b1 = b1,
-#                             n.t = 10,
-#                             var_level = 0.1,
-#                             n.ind = 30)
-# 
-# #most live
-# test_med %>%
-#   group_by(ID) %>%
-#   filter(interval == max(interval)) %>%
-#   group_by(fate) %>%
-#   tally()
-# 
-# #some live through first interval
-# test_med %>%
-#   filter(interval == 1) %>%
-#   group_by(fate) %>%
-#   tally()
-# 
-# test_med %>%
-#   group_by(interval, fate) %>%
-#   tally()
-# 
-# test_high <- sim_xy_function(b0 = b0,
-#                              b1 = b1,
-#                              n.t = 10,
-#                              var_level = 1,
-#                              n.ind = 30)
-# 
-# #fewer live here
-# test_high %>%
-#   group_by(ID) %>%
-#   filter(interval == max(interval)) %>%
-#   group_by(fate) %>%
-#   tally()
-# 
-# #~1/2 live through first interval
-# test_high %>%
-#   filter(interval == 1) %>%
-#   group_by(fate) %>%
-#   tally()
-# 
-# test_high %>%
-#   group_by(interval, fate) %>%
-#   tally()
-# 
-
-# Step 3 - generate a set of 100 datasets at each level ---------------------
+#Step 3 - generate a set of 100 datasets at each level ---------------------
 
 set.seed(1)
+
 #low variation
-y.low <- lapply(1:100, #how many datasets
+x.low <- lapply(1:100, #how many datasets
                 function(i)
                 {
-                  sim_xy_function(b0 = b0,
-                                  b1 = b1,
-                                  n.t = n.int,
-                                  var_level = 0.01,
-                                  n.ind = n.indiv) #based on this probability
+                  sim_x_function(b0 = b0,
+                                 b1 = b1,
+                                 n.t = n.int,
+                                 var_level = 0.01) #based on this probability
                 } )
 
-#create this into one long df with "dataset" ID column corresponding
-#to which element in the list above that dataframe is
-y.low.all <- bind_rows(y.low, .id = "Dataset") 
 
-# y.low.all %>%
-#   group_by(ID, Dataset) %>%
-#   filter(interval == max(interval)) %>%
-#   group_by(Dataset, fate) %>%
-#   tally() %>%
-#   mutate(fate = as.factor(fate)) %>%
-#   ggplot(aes(x = fate, y = n)) +
-#   geom_boxplot()
+x.low.df <- bind_rows(x.low, .id = "Dataset") 
 set.seed(1)
+y.low <- sim_y_function(n.ind = n.indiv,
+                        n.t = n.int,
+                        n.data = n.datasets,
+                        x.df = x.low.df)
+
+set.seed(1)
+
 #med variation
-y.med <- lapply(1:100, #how many datasets
+x.med <- lapply(1:100, #how many datasets
                 function(i)
                 {
-                  sim_xy_function(b0 = b0,
-                              b1 = b1,
-                              n.t = n.int,
-                              var_level = 0.1,
-                              n.ind = n.indiv) #based on this probability
+                  sim_x_function(b0 = b0,
+                                 b1 = b1,
+                                 n.t = n.int,
+                                 var_level = 0.1) #based on this probability
                 } )
 
-#create this into one long df with "dataset" ID column corresponding
-#to which element in the list above that dataframe is
-y.med.all <- bind_rows(y.med, .id = "Dataset") 
 
-# y.med.all %>%
-#   group_by(ID, Dataset) %>%
-#   filter(interval == max(interval)) %>%
-#   group_by(Dataset, fate) %>%
-#   tally() %>%
-#   mutate(fate = as.factor(fate)) %>%
-#   ggplot(aes(x = fate, y = n)) +
-#   geom_boxplot()
+x.med.df <- bind_rows(x.med, .id = "Dataset") 
+
 set.seed(1)
+y.med <- sim_y_function(n.ind = n.indiv,
+                        n.t = n.int,
+                        n.data = n.datasets,
+                        x.df = x.med.df)
+
+set.seed(1)
+
 #high
-y.high <- lapply(1:100, #how many datasets
+x.high <- lapply(1:100, #how many datasets
                 function(i)
                 {
-                  sim_xy_function(b0 = b0,
-                              b1 = b1,
-                              n.t = n.int,
-                              var_level = 1,
-                              n.ind = n.indiv) #based on this probability
+                  sim_x_function(b0 = b0,
+                                 b1 = b1,
+                                 n.t = n.int,
+                                 var_level = 1) #based on this probability
                 } )
 
-#create this into one long df with "dataset" ID column corresponding
-#to which element in the list above that dataframe is
-y.high.all <- bind_rows(y.high, .id = "Dataset") 
 
-# y.high.all %>%
-#   group_by(ID, Dataset) %>%
-#   filter(interval == max(interval)) %>%
-#   group_by(Dataset, fate) %>%
-#   tally() %>%
-#   mutate(fate = as.factor(fate)) %>%
-#   ggplot(aes(x = fate, y = n)) +
-#   geom_boxplot()
+x.high.df <- bind_rows(x.high, .id = "Dataset") 
+
+set.seed(1)
+y.high <- sim_y_function(n.ind = n.indiv,
+                        n.t = n.int,
+                        n.data = n.datasets,
+                        x.df = x.high.df)
 
 # Explore datasets --------------------------------------------------------
 
-c <- y.high.all %>%
+c <- y.high %>%
   ggplot(aes(x = day, y= x, group = Dataset)) +
   geom_line()
 
-b <- y.med.all %>%
+b <- y.med %>%
   ggplot(aes(x = day, y= x, group = Dataset)) +
   geom_line()
 
-a <- y.low.all %>%
+a <- y.low %>%
   ggplot(aes(x = day, y= x, group = Dataset)) +
   geom_line()
 
 #a+ b+ c
 
-d <- y.low.all %>%
+d <- y.low %>%
   ggplot(aes(x = day, y = ps, group = Dataset)) +
   geom_line()
 
-e <- y.med.all %>%
+e <- y.med %>%
   ggplot(aes(x = day, y = ps, group = Dataset)) +
   geom_line()
 
-f <- y.high.all %>%
+f <- y.high %>%
   ggplot(aes(x = day, y = ps, group = Dataset)) +
   geom_line()
 
@@ -313,23 +255,31 @@ f <- y.high.all %>%
 # Truncate and add intervals ----------------------------------------------
 
 #for the high var, the max survival is to:
-(max_day <- y.high.all %>%
+(max_day <- y.high %>%
   filter(!is.na(fate)) %>%
   filter(day == max(day)) %>%
+   distinct(day) %>%
    dplyr::select(day) %>%
    as_vector())
 
+(max_interval <- y.high %>%
+  filter(!is.na(fate)) %>%
+  filter(day == max(day)) %>%
+  distinct(interval) %>%
+  dplyr::select(interval) %>%
+  as_vector() )
 
-y.low.daily <- y.low.all %>%
-  filter(day <= max_day) %>%
+
+y.low.daily <- y.low %>%
+  filter(interval <= max_interval) %>%
   filter(!is.na(fate))
 
-y.med.daily <- y.med.all %>%
-  filter(day <= max_day) %>%
+y.med.daily <- y.med %>%
+  filter(interval <= max_interval) %>%
   filter(!is.na(fate))
 
-y.high.daily <- y.high.all %>%
-  filter(day <= max_day) %>%
+y.high.daily <- y.high %>%
+  filter(interval <= max_interval) %>%
   filter(!is.na(fate))
 
 # Export daily datasets ---------------------------------------------------------
@@ -353,25 +303,25 @@ write.csv(y.high.daily, here("data_outputs",
 
 # Get interval summarised covariates --------------------------------------
 
-y.low.x <- y.low.all %>%
+y.low.x <- y.low %>%
   distinct(Dataset, interval, day, x) %>%
   group_by(Dataset, interval) %>%
   summarise(x = mean(x)) %>%
   ungroup()
 
-y.med.x <- y.med.all %>%
+y.med.x <- y.med %>%
   distinct(Dataset, interval, day, x) %>%
   group_by(Dataset, interval) %>%
   summarise(x = mean(x)) %>%
   ungroup()
 
-y.high.x <- y.high.all %>%
+y.high.x <- y.high %>%
   distinct(Dataset, interval, day, x) %>%
   group_by(Dataset, interval) %>%
   summarise(x = mean(x)) %>%
   ungroup()
 
-y.low.int <- y.low.all %>%
+y.low.int <- y.low %>%
   filter(!is.na(fate)) %>%
   dplyr::select(Dataset, ID, interval, fate) %>%
   group_by(Dataset, ID, interval) %>%
@@ -385,7 +335,7 @@ y.low.int <- y.low.all %>%
   left_join(y.low.x, by = c('Dataset', 'interval'))
 
 
-y.med.int <- y.med.all %>%
+y.med.int <- y.med %>%
   filter(!is.na(fate)) %>%
   dplyr::select(Dataset, ID, interval, fate) %>%
   group_by(Dataset, ID, interval) %>%
@@ -398,7 +348,7 @@ y.med.int <- y.med.all %>%
   distinct(Dataset, ID, interval, fate, t) %>%
   left_join(y.med.x, by = c('Dataset', 'interval'))
 
-y.high.int <- y.high.all %>%
+y.high.int <- y.high %>%
   filter(!is.na(fate)) %>%
   dplyr::select(Dataset, ID, interval, fate) %>%
   group_by(Dataset, ID, interval) %>%
@@ -437,7 +387,7 @@ write.csv(y.high.int, here("data_outputs",
 #these next steps do
 
 
-low.var.tot <- y.low.all %>%
+low.var.tot <- y.low %>%
   filter(!is.na(fate)) %>%
   #for each dataset and id in each dataset
   group_by(Dataset, ID) %>%
@@ -453,7 +403,7 @@ low.var.tot <- y.low.all %>%
   distinct(Dataset, ID, fate, t, x)
 
 #do the same process for the medium variability dataset
-med.var.tot <- y.med.all %>%
+med.var.tot <- y.med %>%
   group_by(Dataset, ID) %>%
   mutate(fate = case_when(any(fate == 0) ~ 0,
                           TRUE ~ 1),
@@ -463,7 +413,7 @@ med.var.tot <- y.med.all %>%
   distinct(Dataset, ID, fate, t, x)
 
 #do the same for the high variability dataset
-high.var.tot <- y.high.all %>%
+high.var.tot <- y.high %>%
   group_by(Dataset, ID) %>%
   mutate(fate = case_when(any(fate == 0) ~ 0,
                           TRUE ~ 1),

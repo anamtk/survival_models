@@ -140,10 +140,6 @@ n.t_fun <- function(df, dataset){
   
   df1 <- df %>%
     filter(Dataset == dataset) %>%
-    group_by(ID) %>%
-    distinct(interval) %>%
-    mutate(n.t = n()) %>%
-    ungroup() %>%
     distinct(ID, n.t)
   
   n.t <- as.vector(df1$n.t)
@@ -190,6 +186,33 @@ day_fun <- function(df, dataset){
 }
 
 
+# Nday function April 2025 ------------------------------------------------
+
+n_day_fun <- function(df, dataset){
+  df1 <- df %>%
+    filter(Dataset == dataset) %>%
+    group_by(ID, interval) %>%
+    filter(day.of.int == max(day.of.int)) %>%
+    ungroup() %>%
+    dplyr::select(ID, interval, day.of.int) %>%
+    pivot_wider(names_from = "interval",
+                values_from = "day.of.int") %>%
+    dplyr::select(-ID) %>%
+    as.matrix()
+  
+  return(df1)
+}
+
+
+# X for daily model3 april 2025 -------------------------------------------
+
+daily_x_fun <- function(){
+  
+  
+  
+  
+}
+
 # Get t by dataset for model3 ---------------------------------------------
 
 
@@ -216,6 +239,42 @@ t_fun <- function(df, dataset){
   
   return(df1)
   
+}
+
+
+# Start day by dataset model3 ---------------------------------------------
+
+start_day_fun <- function(df, dataset){
+  df1 <- df %>%
+    filter(Dataset == dataset) %>%
+    group_by(ID, interval) %>%
+    filter(day == min(day)) %>%
+    ungroup() %>%
+    dplyr::select(ID, interval, day) %>%
+    pivot_wider(names_from = "interval",
+                values_from = "day") %>%
+    dplyr::select(-ID) %>%
+    as.matrix()
+  
+  return(df1)
+}
+
+
+# End day model 3 ---------------------------------------------------------
+
+end_day_fun <- function(df, dataset){
+  df1 <- df %>%
+    filter(Dataset == dataset) %>%
+    group_by(ID, interval) %>%
+    filter(day == max(day)) %>%
+    ungroup() %>%
+    dplyr::select(ID, interval, day) %>%
+    pivot_wider(names_from = "interval",
+                values_from = "day") %>%
+    dplyr::select(-ID) %>%
+    as.matrix()
+  
+  return(df1)
 }
 
 # Get y by datset for model3 ----------------------------------------------

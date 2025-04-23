@@ -43,13 +43,13 @@ data1_list <- list(n.datasets = data1$n.datasets,
                    x = data1$x,
                    t = data1$t)
 
-mod1 <- jagsUI::jags(data = data1_list,
+mod1 <- jagsUI::autojags(data = data1_list,
                      inits = NULL,
                      model.file = "/scratch/atm234/survival_models/sim/models/model1.R",
                      parameters.to.save = parms,
                      parallel = TRUE,
                      n.chains = 3,
-                     n.iter = 4000,
+                     iter.increment = 4000,
                      DIC = TRUE)
 
 mcmcplot(mod1$samples,
@@ -84,13 +84,13 @@ data2_list <- list(n.datasets = data2$n.datasets,
                    t = data2$t)
 
 
-mod2 <- jagsUI::jags(data = data2_list,
+mod2 <- jagsUI::autojags(data = data2_list,
                      inits = NULL,
                      model.file = "/scratch/atm234/survival_models/sim/models/model2.R",
                      parameters.to.save = parms,
                      parallel = TRUE,
                      n.chains = 3,
-                     n.iter = 4000,
+                     iter.increment = 4000,
                      DIC = TRUE)
 
 mcmcplot(mod2$samples,
@@ -123,16 +123,18 @@ data3_list <- list(n.datasets = data3$n.datasets,
                    n.t = data3$n.t,
                    y = data3$y,
                    x = data3$x,
-                   t = data3$t,
+                   n.days = data3$n.days,
+                   start.day = data3$start.day,
+                   end.day = data3$end.day,
                    y2 = data3$y2)
 
-mod3 <- jagsUI::jags(data = data3_list,
+mod3 <- jagsUI::autojags(data = data3_list,
                      inits = NULL,
-                     model.file = "/scratch/atm234/survival_models/sim/models/model3_April2025.R",
+                     model.file = "/scratch/atm234/survival_models/sim/models/model3_April2025_daily.R",
                      parameters.to.save = parms,
                      parallel = TRUE,
                      n.chains = 3,
-                     n.iter = 4000,
+                     iter.increment = 4000,
                      DIC = TRUE)
 
 mcmcplot(mod3$samples,
