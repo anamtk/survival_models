@@ -222,32 +222,86 @@ y.high <- sim_y_function(n.ind = n.indiv,
                         x.df = x.high.df)
 
 # Explore datasets --------------------------------------------------------
-
+theme_set(theme_bw())
 c <- y.high %>%
   ggplot(aes(x = day, y= x, group = Dataset)) +
-  geom_line()
+  geom_line() +
+  geom_vline(aes(xintercept = 3), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 6), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 9), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 12), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 15), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 18), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 21), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 24), linetype = 2, color = "blue") +
+  xlim(0, 24)
 
 b <- y.med %>%
   ggplot(aes(x = day, y= x, group = Dataset)) +
-  geom_line()
+  geom_line()+
+  geom_vline(aes(xintercept = 3), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 6), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 9), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 12), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 15), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 18), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 21), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 24), linetype = 2, color = "blue") +
+  xlim(0, 24)
 
 a <- y.low %>%
   ggplot(aes(x = day, y= x, group = Dataset)) +
-  geom_line()
+  geom_line()+
+  geom_vline(aes(xintercept = 3), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 6), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 9), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 12), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 15), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 18), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 21), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 24), linetype = 2, color = "blue") +
+  xlim(0, 24)
 
 #a+ b+ c
 
 d <- y.low %>%
   ggplot(aes(x = day, y = ps, group = Dataset)) +
-  geom_line()
+  geom_line()+
+  geom_vline(aes(xintercept = 3), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 6), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 9), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 12), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 15), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 18), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 21), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 24), linetype = 2, color = "blue") +
+  xlim(0, 24)
 
 e <- y.med %>%
   ggplot(aes(x = day, y = ps, group = Dataset)) +
-  geom_line()
+  geom_line()+
+  geom_vline(aes(xintercept = 3), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 6), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 9), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 12), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 15), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 18), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 21), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 24), linetype = 2, color = "blue") +
+  xlim(0, 24)
 
 f <- y.high %>%
   ggplot(aes(x = day, y = ps, group = Dataset)) +
-  geom_line()
+  geom_line()+
+  geom_vline(aes(xintercept = 3), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 6), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 9), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 12), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 15), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 18), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 21), linetype = 2, color = "blue") +
+  geom_vline(aes(xintercept = 24), linetype = 2, color = "blue") +
+  xlim(0, 24)
 
 (a+ b+ c)/
 (d + e +f)

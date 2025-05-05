@@ -128,7 +128,7 @@ model3 <- here("code",
                "simulated_datasets",
                "02_analyses",
                "00_jags",
-               "model3_April2025_daily.R")
+               "model3_April2025_daily2.R")
 
 mod3 <- jagsUI::jags(data = data3,
                      inits = NULL,

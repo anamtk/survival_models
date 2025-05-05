@@ -232,6 +232,16 @@ n.t <- low.day2 %>%
   dplyr::select(-ID) %>%
   as.matrix()
 
+n.interval <- low.day2 %>%
+  ungroup() %>%
+  distinct(Dataset, interval) %>%
+  group_by(Dataset) %>%
+  filter(interval == max(interval)) %>%
+  arrange(Dataset) %>%
+  ungroup() %>%
+  dplyr::select(interval) %>%
+  as_vector()
+
 #FOR ALL ARRAYS: Indexing dataframes AND 
 #variables to loop through for for loops
 low.day2 <- as.data.frame(low.day2)
@@ -253,36 +263,38 @@ day.index.df <- low.day2 %>%
   distinct(ID, interval, Dataset, start, end) %>%
   as.data.frame()
 
-Id <- day.index.df$ID #define a vector of ids
-Int <- day.index.df$interval #vector of days in interval
-Datset <- day.index.df$Dataset
+day.index.df2 <- day.index.df %>%
+  distinct(interval, Dataset, start, end)
+
+#Id <- day.index.df$ID #define a vector of ids
+Int <- day.index.df2$interval #vector of days in interval
+Datset <- day.index.df2$Dataset
 
 #start.day[i,j,d] values from 1-24 (more like 3-22)
-start.day <- array(NA, dim = c(n.ind, n.int, n.data))
+start.day <- matrix(NA, nrow = n.int, ncol = n.data)
 
 #fill array based on id, interval, day, and dataset for each row
-for(i in 1:dim(day.index.df)[1]){
-  start.day[Id[i], Int[i], Datset[i]] <- day.index.df[i, 4] 
+for(i in 1:dim(day.index.df2)[1]){
+  start.day[Int[i], Datset[i]] <- day.index.df2[i, 3] 
 }
 
 #end.day[i,j,d] values from 1-24 (more like 3-24)
-end.day <- array(NA, dim = c(n.ind, n.int, n.data))
+end.day <- matrix(NA, nrow = n.int, ncol = n.data)
 
 #fill array based on id, interval, day, and dataset for each row
-for(i in 1:dim(day.index.df)[1]){
-  end.day[Id[i], Int[i], Datset[i]] <- day.index.df[i, 5] 
+for(i in 1:dim(day.index.df2)[1]){
+  end.day[Int[i], Datset[i]] <- day.index.df2[i, 4] 
 }
 
 #n.days[i,d]
 n.days <- low.day2 %>%
-  group_by(ID, Dataset) %>%
+  group_by(Dataset) %>%
   filter(day == max(day)) %>%
-  dplyr::select(ID, Dataset, day) %>%
+  distinct(Dataset, day) %>%
+  arrange(Dataset) %>%
   ungroup() %>%
-  pivot_wider(names_from = "Dataset",
-              values_from = "day") %>%
-  column_to_rownames(var= "ID") %>%
-  as.matrix()
+  dplyr::select(day) %>%
+  as_vector()
 
 #n.days[i,j,d]
 # days <- list()
@@ -298,16 +310,16 @@ n.days <- low.day2 %>%
 
 #x[i,k,d]
 
-ID <- low.day2$ID #define a vector of ids
+#ID <- low.day2$ID #define a vector of ids
 day <- low.day2$day #vector of days in interval
 datset <- low.day2$Dataset
 
 #create empty y array with the appropriate dimensions
-x <- array(NA, dim = c(n.ind, n.dy, n.data))
+x <- matrix(NA, nrow = n.dy, ncol = n.data)
 
 #fill array based on id, interval, day, and dataset for each row
 for(i in 1:dim(low.day2)[1]){
-  x[ID[i], day[i], datset[i]] <- low.day2[i, 4] 
+  x[day[i], datset[i]] <- low.day2[i, 4] 
 }
 
 # #x[i,j,k,d]
@@ -346,6 +358,7 @@ data3 <- list(n.datasets = 100,
               n.indiv = n.indiv,
               n.indiv1 = n.indiv1,
              n.t = n.t,
+             n.interval = n.interval,
              y = y,
              x = x,
              n.days = n.days,
