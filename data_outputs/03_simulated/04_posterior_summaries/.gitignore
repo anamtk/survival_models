@@ -1,3 +1,11 @@
 mod1low_GOFmodel.RDS
 mod1low_summary.RDS
 mod2low_summary.RDS
+mod1med_GOFmodel.RDS
+mod1high_GOFmodel.RDS
+mod2high_GOFmodel.RDS
+mod2low_GOFmodel.RDS
+mod2med_GOFmodel.RDS
+mod3high_GOFmodel.RDS
+mod3low_GOFmodel.RDS
+mod3med_GOFmodel.RDS
