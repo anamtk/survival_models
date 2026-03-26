@@ -12,7 +12,6 @@ for(i in package.list){library(i, character.only = T)}
 
 # Data specifications -----------------------------------------------------
 
-
 y_function <- function(n.ind, 
                        n.t,
                        prob_matrix){
@@ -201,16 +200,6 @@ n_day_fun <- function(df, dataset){
     as.matrix()
   
   return(df1)
-}
-
-
-# X for daily model3 april 2025 -------------------------------------------
-
-daily_x_fun <- function(){
-  
-  
-  
-  
 }
 
 # Get t by dataset for model3 ---------------------------------------------

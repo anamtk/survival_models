@@ -32,17 +32,16 @@ source(here::here("code",
 
 # Load data ---------------------------------------------------------------
 
-model2_sum <- readRDS(here("monsoon",
-                           "01_whwonests",
-                           "model2",
-                           "outputs",
-                           "model2_posterior_summary.RDS"))
+model2_sum <- readRDS(here('data_outputs',
+                           '01_whwonests',
+                           '04_posterior_summaries',
+                           'Model2_posterior_summary.RDS'))
 
 
 # Posterior median and CI of all parameters -------------------------------
 
-parms <- c("b[4]",
-           "b[5]", "b[6]","b[7]",            
+parms <- c("b[1]",
+           "b[2]", "b[3]","b[4]",            
            "b[8]", "b[9]", "b[10]",          
            "b[11]", "b[12]", "b[13]",           
            "b[14]", "b[15]", "b[16]",  

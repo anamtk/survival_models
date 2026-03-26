@@ -33,26 +33,18 @@ source(here::here("code",
 
 # Load data ---------------------------------------------------------------
 
-model3_sum <- readRDS(here("monsoon",
-                           "01_whwonests",
-                           "model3",
-                           "outputs",
-                           "model3_posterior_summary.RDS"))
+model3_sum <- readRDS(here('data_outputs',
+                           '01_whwonests',
+                           '04_posterior_summaries',
+                           'Model3_posterior_summary.RDS'))
 
 
 # Posterior median and CI of all parameters -------------------------------
 
-parms <- c("b[4]", "b[5]",
-           "b[6]", "b[7]","b[8]",            
-           "b[9]", "b[10]", "b[11]",          
-           "b[12]", "b[13]", "b[14]",           
-           "b[15]", "b[16]", "b[17]",  
-           "b[18]",'b[19]', 'b[20]',
-           'b[21]', 'b[22]',
-           'b3StageID[2]',
-           "b1TreatmentID[2]","b1TreatmentID[3]",
-           "b1TreatmentID[4]", "b2SpeciesID[2]",  
-           "b2SpeciesID[3]","b2SpeciesID[4]","b2SpeciesID[5]")
+parms <- c("b[1]", "b[2]",
+           "b[3]", "b[4]","b[5]",            
+           "b[6]", 'b[7]', 
+           'b[8]', 'b[9]')
 
 # "U", "B", "H", "HB"
 #"PIPO", "Abies", "POTR5", "JUOC", "PSME"
@@ -60,41 +52,15 @@ parms <- c("b[4]", "b[5]",
 mod3_est <- as.data.frame(model3_sum$quantiles) %>%
   rownames_to_column(var = "parameter") %>%
   filter(parameter %in% parms) %>%
-  mutate(parameter = case_when(parameter == "b3StageID[2]" ~ 
-                                 "Stage:Egg",
-                               parameter == 'b1TreatmentID[2]' ~ 
-                                 'TreatmentType:Burn',
-                               parameter == "b1TreatmentID[3]" ~
-                                 "TreatmentType:Harvest",
-                               parameter == "b1TreatmentID[4]" ~
-                                 "TreatmentType:Harvest+Burn",
-                               parameter == "b2SpeciesID[2]" ~
-                                 "NestTree:Abies",
-                               parameter == "b2SpeciesID[3]" ~
-                                 "NestTree:Aspen",
-                               parameter == "b2SpeciesID[4]" ~
-                                 "NestTree:Juniper",
-                               parameter == "b2SpeciesID[5]" ~
-                                 "NestTree:DougFir",
-                               parameter == "b[4]" ~ "NestHt",
-                               parameter == "b[5]" ~ "NestOrientation",
-                               parameter == "b[6]" ~ "InitDay",
-                               parameter == "b[7]" ~ "LgTreeDens",
-                               parameter == "b[8]" ~ "SmTreeDens",
-                               parameter == "b[9]" ~ "PercPonderosa",
-                               parameter == "b[10]" ~ "Tmax",
-                               parameter == "b[11]" ~ "Tmax^2",
-                               parameter == "b[12]" ~ "PPT",
-                               parameter == "b[13]" ~ "PPT^2",
-                               parameter == "b[14]" ~ "ForestCV",
-                               parameter == "b[15]" ~ "Contagion",
-                               parameter == "b[16]" ~ "NumOpenPatch",
-                               parameter == "b[17]" ~ "PercHarvest",
-                               parameter == "b[18]" ~ "PercBurn",
-                               parameter == 'b[19]' ~ "LgTrees*pPIPO",
-                               parameter == 'b[20]' ~ "SmTrees*pPIPO",
-                               parameter == 'b[21]' ~ "LgTrees*Tmax",
-                               parameter == 'b[22]' ~ "SmTrees*Tmax",
+  mutate(parameter = case_when(parameter == "b[1]" ~ "NestHt",
+                               parameter == "b[2]" ~ "NestOrientation",
+                               parameter == "b[3]" ~ "InitDay",
+                               parameter == "b[4]" ~ "LgTreeDens",
+                               parameter == "b[5]" ~ "SmTreeDens",
+                               parameter == "b[6]" ~ "Tmax",
+                               parameter == "b[7]" ~ "Tmax^2",
+                               parameter == "b[8]" ~ "PPT",
+                               parameter == "b[9]" ~ "PPT^2",
                                TRUE ~ parameter)) %>%
   mutate(Model = "Model3_CustomProb")
 
@@ -120,42 +86,15 @@ p_values3 <- as.data.frame(model3_sum$statistics) %>%
   mutate(p_dir = case_when((p_cat == "s" & direction == "positive") ~ p,
                            (p_cat == "s" & direction == "negative") ~ -p,
                            TRUE ~ NA_real_)) %>%
-  filter(!zvalue %in% c("z.b1[1]", "z.b2[1]", 'z.b3[1]')) %>%
-  mutate(zvalue = case_when(zvalue == 'z.b1[2]' ~ 
-                              'TreatmentType:Burn',
-                            zvalue == "z.b1[3]" ~
-                              "TreatmentType:Harvest",
-                            zvalue == "z.b1[4]" ~
-                              "TreatmentType:Harvest+Burn",
-                            zvalue == "z.b2[2]" ~
-                              "NestTree:Abies",
-                            zvalue == "z.b2[3]" ~
-                              "NestTree:Aspen",
-                            zvalue == "z.b2[4]" ~
-                              "NestTree:Juniper",
-                            zvalue == "z.b2[5]" ~
-                              "NestTree:DougFir",
-                            zvalue == "z.b3[2]" ~
-                              "Stage:Egg",
-                            zvalue == "z[4]" ~ "NestHt",
-                            zvalue == "z[5]" ~ "NestOrientation",
-                            zvalue == "z[6]" ~ "InitDay",
-                            zvalue == "z[7]" ~ "LgTreeDens",
-                            zvalue == "z[8]" ~ "SmTreeDens",
-                            zvalue == "z[9]" ~ "PercPonderosa",
-                            zvalue == "z[10]" ~ "Tmax",
-                            zvalue == "z[11]" ~ "Tmax^2",
-                            zvalue == "z[12]" ~ "PPT",
-                            zvalue == "z[13]" ~ "PPT^2",
-                            zvalue == "z[14]" ~ "ForestCV",
-                            zvalue == "z[15]" ~ "Contagion",
-                            zvalue == "z[16]" ~ "NumOpenPatch",
-                            zvalue == "z[17]" ~ "PercHarvest",
-                            zvalue == "z[18]" ~ "PercBurn",
-                            zvalue == "z[19]" ~ "LgTrees*pPIPO",
-                            zvalue == "z[20]" ~ "SmTrees*pPIPO",
-                            zvalue == "z[21]" ~ "LgTrees*Tmax",
-                            zvalue == "z[22]" ~ "SmTrees*Tmax",
+  mutate(zvalue = case_when(zvalue == "z[1]" ~ "NestHt",
+                            zvalue == "z[2]" ~ "NestOrientation",
+                            zvalue == "z[3]" ~ "InitDay",
+                            zvalue == "z[4]" ~ "LgTreeDens",
+                            zvalue == "z[5]" ~ "SmTreeDens",
+                            zvalue == "z[6]" ~ "Tmax",
+                            zvalue == "z[7]" ~ "Tmax^2",
+                            zvalue == "z[8]" ~ "PPT",
+                            zvalue == "z[9]" ~ "PPT^2",
                             TRUE ~ zvalue)) %>%
   mutate(Model = "Model3_CustomProb")
 

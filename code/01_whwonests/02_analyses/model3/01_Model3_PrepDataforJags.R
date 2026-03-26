@@ -6,7 +6,7 @@
 
 # Load packages -----------------------------------------------------------
 
-package.list <- c("here", "tidyverse", "lubridate", "glmmTMB")
+package.list <- c("here", "tidyverse", "lubridate")
 
 ## Installing them if they aren't already on the computer
 new.packages <- package.list[!(package.list %in% installed.packages()[,"Package"])]
@@ -26,6 +26,10 @@ nests <- read.csv(here("data_outputs",
                        "02_analysis_ready",
                        "interval_models_nest_data.csv"))
 
+climate <- read.csv(here("data_outputs",
+                         "01_whwonests",
+                         "02_analysis_ready",
+                         'daily_climate_data_withintervalID.csv'))
 
 # Arrange nests by interval number for custom model -----------------------
 
@@ -34,6 +38,7 @@ nests1 <- nests %>%
   mutate(n.t = n()) %>%
   ungroup() %>%
   arrange(n.t)
+
 # Nest ID, number, and visit number ---------------------------------------
 
 Nests <- nests1 %>%
@@ -53,14 +58,6 @@ n.nests <- length(Nests$Nest_ID)
 n.t <- as_vector(Nests$n.t)
 
 # Random variables of transect, forest, and year -------------------
-
-#Get the names of all the transects
-Transects <- nests1 %>%
-  distinct(Transect_ID2) %>%
-  as_vector()
-
-#number of transects
-n.transects <- length(Transects)
 
 #Year ID
 Years <- nests1 %>%
@@ -88,16 +85,6 @@ n.forests <- length(Forests)
 
 # Random variables --------------------------------------------------------
 
-#transect random effect (vector length of number of nest points)
-Transect <- nests1 %>%
-  distinct(Nest_ID, 
-           Transect_ID2,
-           Project_ID) %>%
-  dplyr::select(Transect_ID2) %>%
-  as_vector()
-#make numeric for model
-Transect.num <- nums(Transect)
-
 #year as random effect - vector length of nests
 Year <- nests1 %>%
   distinct(Nest_ID, Year_located) %>%
@@ -108,146 +95,84 @@ Year.num <- nums(Year)
 
 #forest ID length of number of transects for hierarchical centered
 Forest <- nests1 %>%
-  distinct(Transect_ID2,
+  distinct(Nest_ID,
            Project_ID) %>%
   dplyr::select(Project_ID) %>%
   as_vector()
 #make numeric for model
 Forest.num <- nums(Forest)
 
-# Missing data ------------------------------------------------------------
-
-#for missing ppt and temp data
-#length of the number of nests
-Forest1 <- nests1 %>%
-  distinct(Nest_ID,
-           Transect_ID2,
-           Project_ID) %>%
-  dplyr::select(Project_ID) %>%
-  as_vector()
-#make numeric for model
-Forest.ID <- nums(Forest1)
-           
 # Nest and stand covariates -----------------------------------------------
 # **might be able to subset these based on previous literature**
 #select all covariates on nest survival
 nest_covs <- nests1 %>%
   distinct(Nest_ID, 
-           Nest_Ht, Tree_sp, cosOrientation, Init_day,
-          Trt_cat,
-           Trees_2550, Trees_50, pPIPO, 
-           a1000_areacv2, a1000_contag,
-           a1000_np1, a1000_Ha, a1000_RxBu) %>% 
+           Nest_Ht, Orientation, Initiation_date,
+           Trees_2550, Trees_50) %>% 
+  mutate(Initiation_date = case_when(str_detect(Initiation_date, "99") ~ NA_character_,
+                                     TRUE ~ Initiation_date)) %>%
+  mutate(Initiation_date = yday(Initiation_date)) %>%
   mutate_if(is.numeric, scale)  #center and scale continous variables
-
-#Treatment covariate
-TreatmentID <- nest_covs %>%
-  mutate(Trt_cat = factor(Trt_cat, levels = c("U", "B", "H", "HB"))) %>%
-  dplyr::select(Trt_cat) %>%
-  as_vector() %>%
-  nums()
-
-n.trt <- length(unique(as.factor(TreatmentID)))
-#levels:
-#1 = untreated
-#2 = burn
-#3 = harvest
-#4 = harvest burn
-
-## Species categorical effect
-SpeciesID <- nest_covs %>%
-  mutate(Tree_sp = factor(Tree_sp, levels = c("PIPO", "Abies", "POTR5",
-                                              "JUOC", "PSME"))) %>%
-  dplyr::select(Tree_sp) %>%
-  as_vector() %>%
-  nums()
-  
-n.species <- length(unique(as.factor(SpeciesID)))
-
-#levels(as.factor(nest_covs$Tree_sp))
-#1 = PIPO
-#2 = Abies
-#3 = POTR5
-#4 = JUOC
-#5 = PSME
 
 #Nest-level covariates
 NestHt <- as.vector(nest_covs$Nest_Ht)
-InitDay <- as.vector(nest_covs$Init_day)
-cosOrientation <- as.vector(nest_covs$cosOrientation) 
+InitDay <- as.vector(nest_covs$Initiation_date)
+cosOrientation <- as.vector(nest_covs$Orientation) 
 #Local covariates
 Trees2550 <- as.vector(nest_covs$Trees_2550)
 Trees50 <- as.vector(nest_covs$Trees_50)
-PercPonderosa <- as.vector(nest_covs$pPIPO)
-#landscape-scale covariates
-ForestCV <- as.vector(nest_covs$a1000_areacv2)
-Contag <- as.vector(nest_covs$a1000_contag)
-OpenNm <- as.vector(nest_covs$a1000_np1)
-LandHa <- as.vector(nest_covs$a1000_Ha)
-LandBu <- as.vector(nest_covs$a1000_RxBu)
 
-# Sampling Interval Covariates --------------------------------------------
 
-#Temperature and precip
-Tmax <- nests1 %>%
-  mutate(meanTmax_C = scale(meanTmax_C)) %>%
+# Daily covariates --------------------------------------------------------
+
+climate2 <- climate %>%
+  arrange(match(Nest_ID, Nests$Nest_ID)) %>%
   group_by(Nest_ID) %>%
-  mutate(interval = row_number()) %>%
-  ungroup() %>%
-  dplyr::select(Nest_ID, meanTmax_C, interval) %>%
-  pivot_wider(names_from= "interval",
-              values_from = "meanTmax_C") %>%
+  mutate(Survey_day = 1:n()) %>%
+  ungroup()
+
+n.days <- climate2 %>%
+  group_by(Nest_ID) %>%
+  tally() %>%
+  arrange(match(Nest_ID, Nests$Nest_ID)) %>%
+  dplyr::select(n) %>%
+  as_vector()
+
+
+start.day <- climate2 %>%
+  dplyr::select(Nest_ID, interval, Survey_day) %>%
+  group_by(Nest_ID, interval) %>%
+  filter(Survey_day == min(Survey_day)) %>%
+  pivot_wider(names_from = 'interval',
+              values_from = 'Survey_day') %>%
   column_to_rownames(var = "Nest_ID") %>%
   as.matrix()
 
-PPT <- nests1 %>%
-  mutate(meanPpt_mm = scale(meanPpt_mm)) %>%
-  group_by(Nest_ID) %>%
-  mutate(interval = row_number()) %>%
-  ungroup() %>%
-  dplyr::select(Nest_ID, meanPpt_mm, interval) %>%
-  pivot_wider(names_from= "interval",
-              values_from = "meanPpt_mm") %>%
+end.day <- climate2 %>%
+  dplyr::select(Nest_ID, interval, Survey_day) %>%
+  group_by(Nest_ID, interval) %>%
+  filter(Survey_day == max(Survey_day)) %>%
+  pivot_wider(names_from = 'interval',
+              values_from = 'Survey_day') %>%
   column_to_rownames(var = "Nest_ID") %>%
   as.matrix()
 
-# Calculate interval length for each interval
-t <- nests1 %>%
-  mutate(Julian_end = as.numeric(Julian_end),
-         Julian_start = as.numeric(Julian_start)) %>%
-  mutate(Int = Julian_end - Julian_start) %>%
-  group_by(Nest_ID) %>%
-  mutate(interval = row_number()) %>%
-  ungroup() %>%
-  dplyr::select(Nest_ID, interval, Int) %>%
-  pivot_wider(names_from = "interval",
-              values_from = "Int") %>%
+#[nest, day]
+Tmax <- climate2 %>%
+  dplyr::select(Nest_ID, tmax, Survey_day) %>%
+  mutate(tmax = scale(tmax)) %>%
+  pivot_wider(names_from = "Survey_day",
+              values_from = "tmax")%>%
   column_to_rownames(var = "Nest_ID") %>%
   as.matrix()
-  
-nests1 %>%
-  group_by(prevStage) %>%
-  tally()
 
-#1 = Ne = 1186
-#2 = Eg = 381
-#3 = Ex = 108
-# get stage of nest for each visit too
-#this should be previous stage
-Stage <- nests1 %>%
-  mutate(StageID = case_when(prevStage == "N" ~ 1,
-                             prevStage %in% c("I", "L") ~ 2,
-                             TRUE ~ NA_real_)) %>%
-  group_by(Nest_ID) %>%
-  mutate(interval  = row_number()) %>%
-  ungroup() %>%
-  dplyr::select(Nest_ID, StageID, interval) %>%
-  pivot_wider(names_from = "interval",
-              values_from = "StageID") %>%
-  column_to_rownames(var = 'Nest_ID') %>%
+PPT <- climate2 %>%
+  dplyr::select(Nest_ID, ppt, Survey_day) %>%
+  mutate(ppt = scale(ppt)) %>%
+  pivot_wider(names_from = "Survey_day",
+              values_from = "ppt")%>%
+  column_to_rownames(var = "Nest_ID") %>%
   as.matrix()
-
-n.stages <- 2
 
 # Response vector ---------------------------------------------------------
 
@@ -255,12 +180,12 @@ y <- nests1 %>%
   distinct(Nest_ID, Fate_cat) %>%
   mutate(survival = case_when(Fate_cat == "success" ~ 1,
                               Fate_cat == "failure" ~ 0,
-                              TRUE ~ NA_real_)) %>%
+                              TRUE ~ NA_real_)) #%>%
   dplyr::select(survival) %>% 
   as_vector()
   
-length(y[which(y == 1)]) #228
-length(y[which(y == 0)]) #92
+length(y[which(y == 1)]) #238
+length(y[which(y == 0)]) #84
 
 # Export as RDS -----------------------------------------------------------
 
@@ -269,23 +194,10 @@ all_data <- list(#Data count variables
                  n.nests = n.nests,
                  n.t = n.t, 
                  n.years = n.years,
-                 n.transects = n.transects,
-                 n.trt = n.trt, 
-                 n.species = n.species,
-                 n.stages = n.stages,
                  n.forests = n.forests,
                  #Random effects IDs
                  Year.num = Year.num,
-                 Transect.num = Transect.num,
                  Forest.num = Forest.num,
-                 #missing data
-                 Forest.ID = Forest.ID,
-                 #Treatment covariate
-                 TreatmentID = TreatmentID, 
-                 #nest tree species
-                 SpeciesID = SpeciesID, 
-                 #Interval stage covariate
-                 StageID = Stage,
                  #Nest-level covariates
                  NestHt = NestHt, 
                  cosOrientation = cosOrientation,
@@ -293,22 +205,17 @@ all_data <- list(#Data count variables
                  #Local-level covariates
                  Trees50 = Trees50,
                  Trees2550 = Trees2550, 
-                 PercPonderosa = PercPonderosa,
                  #climate covariates
                  Tmax = Tmax,
                  PPT = PPT,
-                 #landscape-scale covariates
-                 ForestCV = ForestCV,
-                 Contag = Contag,
-                 OpenNm = OpenNm,
-                 LandHa = LandHa,
-                 LandBu = LandBu,
                  #dataset
                  y = y,
                  #duplicated dataset for ifelse statement
                  y2 = y,
-                 #interval lengths
-                 t = t)
+                 #interval and day indexing
+                 start.day = start.day,
+                 end.day = end.day,
+                 n.days = n.days)
 
 saveRDS(all_data, here("data_outputs", 
                        "01_whwonests",

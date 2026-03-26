@@ -43,12 +43,12 @@ AUC_JAGS <- function(mod_GOF, iteration.num, resp){
 
 AUC_JAGS2 <- function(df, iteration.num, resp){
   
-  p1 <- df %>%
+  p <- df %>%
     filter(iteration == iteration.num) %>%
     dplyr::select(p) %>%
     as_vector()
   
-  ROC <- roc(response =resp, predictor =p1)
+  ROC <- roc(response =resp, predictor =p)
   
   AUC <- auc(ROC)
   

@@ -90,7 +90,8 @@ mod2 <- jagsUI::autojags(data = data2_list,
                      parameters.to.save = parms,
                      parallel = TRUE,
                      n.chains = 3,
-                     iter.increment = 4000,
+                     n.thin =3,
+                     iter.increment = 10000,
                      DIC = TRUE)
 
 mcmcplot(mod2$samples,
@@ -135,7 +136,8 @@ mod3 <- jagsUI::autojags(data = data3_list,
                      parameters.to.save = parms,
                      parallel = TRUE,
                      n.chains = 3,
-                     iter.increment = 4000,
+                     n.thin =3,
+                     iter.increment = 10000,
                      DIC = TRUE)
 
 mcmcplot(mod3$samples,

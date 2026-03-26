@@ -29,25 +29,13 @@ nests <- read.csv(here("data_outputs",
 
 
 # Nest ID, number, and visit number ---------------------------------------
-
-Nests <- nests %>%
-  distinct(Nest_ID)
-
 #get a vector of nest IDs
 Nests <- unique(nests$Nest_ID)
 
 # get the total count of nests
 n.nests <- length(Nests)
 
-# Random variables of transect, forest, and year -------------------
-
-#Get the names of all the transects
-Transects <- nests %>%
-  distinct(Transect_ID2) %>%
-  as_vector()
-
-#number of transects
-n.transects <- length(Transects)
+# Random variables of forest, and year -------------------
 
 #Year ID
 Years <- nests %>%
@@ -72,17 +60,6 @@ n.forests <- length(Forests)
 
 # Random variables --------------------------------------------------------
 
-#transect random effect (vector length of number of nest points)
-Transect <- nests %>%
-  distinct(Nest_ID, 
-           Transect_ID2,
-           Project_ID) %>%
-  dplyr::select(Transect_ID2) %>%
-  as_vector()
-
-#make numeric for the model
-Transect.num <- nums(Transect)
-
 #year as random effect - vector length of nests
 Year <- nests %>%
   distinct(Nest_ID, Year_located) %>%
@@ -95,111 +72,40 @@ Year.num <- nums(Year)
 #forest random effect - vector of length of the 
 #number of transects (hierarchically centered)
 Forest <- nests %>%
-  distinct(Transect_ID2, 
-           Project_ID) %>%
   dplyr::select(Project_ID) %>%
   as_vector()
 
 #make numeric for model
 Forest.num <- nums(Forest)
-
-# MIssing data variables --------------------------------------------------
-
-#vector length of number of nests of forest ID for
-#imputing the climate data
-
-Forest1 <- nests %>%
-  distinct(Nest_ID,
-           Transect_ID2,
-           Project_ID) %>%
-  dplyr::select(Project_ID) %>%
-  as_vector()
-
-#get taht in numeric for model
-Forest.ID <- nums(Forest1)
-           
+        
 # Nest and stand covariates -----------------------------------------------
 #select all covariates on nest survival
 nest_covs <- nests %>%
-  dplyr::select(Nest_ID, Nest_Ht, 
-           Tree_sp, cosOrientation, Init_day, Trt_cat, prevStage,
-           Trees_2550, Trees_50, pPIPO,
-           a1000_areacv2, a1000_contag, a1000_np1, a1000_Ha, a1000_RxBu,
-           meanTmax_C, meanPpt_mm) %>% 
+  dplyr::select(Nest_ID, Initiation_date,
+                Nest_Ht, Orientation, 
+                Trees_2550, Trees_50, 
+                tmax, ppt) %>%
+  #make a julian day
+  mutate(Initiation_date = yday(as_date(Initiation_date))) %>%
+  #set orientation to be 1 if N, -1 if south
+  mutate(Orientation = cos(Orientation * (pi/180))) %>%
   mutate_if(is.numeric, scale)  #center and scale continous variables
-
-#categorical covariates
-#set the base level to be the one with the 
-#most observations
-
-#Treatment covariate
-TreatmentID <- nest_covs %>%
-  mutate(Trt_cat = factor(Trt_cat, levels = c("U", "B", "H", "HB"))) %>%
-  dplyr::select(Trt_cat) %>%
-  as_vector() %>%
-  nums()
-
-n.trt <- length(unique(as.factor(TreatmentID)))
-#levels:
-#1 = untreated
-#2 = burn
-#3 = harvest
-#4 = harvest burn
-
-## Species categorical effect
-SpeciesID <- nest_covs %>%
-  mutate(Tree_sp = factor(Tree_sp, levels = c("PIPO", "Abies", "POTR5",
-                                              "JUOC", "PSME"))) %>%
-  dplyr::select(Tree_sp) %>%
-  as_vector() %>%
-  nums()
-  
-n.species <- length(unique(as.factor(SpeciesID)))
-
-#levels(as.factor(nest_covs$Tree_sp))
-#1 = PIPO
-#2 = Abies
-#3 = POTR5
-#4 = JUOC
-#5 = PSME
-
-#stage categorical effect
-nests %>%
-  group_by(prevStage) %>%
-  tally()
-
-StageID <- nests %>%
-  mutate(StageID = case_when(prevStage == "N" ~ 1,
-                             prevStage %in% c("I", "L") ~ 2,
-                             TRUE ~ NA_real_)) %>%
-  dplyr::select(StageID) %>%
-  as_vector() %>%
-  nums()
-
-n.stages <- 2
 
 #Nest-level covariates
 NestHt <- as.vector(nest_covs$Nest_Ht)
-InitDay <- as.vector(nest_covs$Init_day)
-cosOrientation <- as.vector(nest_covs$cosOrientation) 
+InitDay <- as.vector(nest_covs$Initiation_date)
+cosOrientation <- as.vector(nest_covs$Orientation) 
 #Local covariates
 Trees2550 <- as.vector(nest_covs$Trees_2550)
 Trees50 <- as.vector(nest_covs$Trees_50)
-PercPonderosa <- as.vector(nest_covs$pPIPO)
 #climate covarites
-PPT <- as.vector(nest_covs$meanPpt_mm)
-Tmax <- as.vector(nest_covs$meanTmax_C)
-#landscape-scale covariates
-ForestCV <- as.vector(nest_covs$a1000_areacv2)
-Contag <- as.vector(nest_covs$a1000_contag)
-OpenNm <- as.vector(nest_covs$a1000_np1)
-LandHa <- as.vector(nest_covs$a1000_Ha)
-LandBu <- as.vector(nest_covs$a1000_RxBu)
+PPT <- as.vector(nest_covs$ppt)
+Tmax <- as.vector(nest_covs$tmax)
 
 # Exposure time -----------------------------------------------------------
 
 #total amount of time each nest was surveyed
-t <- as.vector(nests$exposure)
+t <- as.vector(nests$t)
 
 # Response vector ---------------------------------------------------------
 
@@ -217,24 +123,10 @@ y <- nests  %>%
 all_data <- list(#Data count variables
                  n.nests = n.nests,
                  n.years = n.years,
-                 n.transects = n.transects,
-                 n.trt = n.trt, 
-                 n.species = n.species,
                  n.forests = n.forests,
-                 n.stages = n.stages,
                  #Random effects IDs
-                 Nest.num = Nest.num,
                  Year.num = Year.num,
-                 Transect.num = Transect.num,
                  Forest.num = Forest.num,
-                 #Missing data
-                 Forest.ID = Forest.ID,
-                 #Treatment covariate
-                 TreatmentID = TreatmentID, 
-                 #Nest species
-                 SpeciesID = SpeciesID, 
-                 #nest Stage
-                 StageID = StageID,
                  #Nest-level covariates
                  NestHt = NestHt, 
                  cosOrientation = cosOrientation,
@@ -242,16 +134,9 @@ all_data <- list(#Data count variables
                  #Local-level covariates
                  Trees50 = Trees50,
                  Trees2550 = Trees2550, 
-                 PercPonderosa = PercPonderosa,
                 #climate covariates
                  Tmax = Tmax,
                  PPT = PPT,
-                 #landscape-scale covariates
-                 ForestCV = ForestCV,
-                 Contag = Contag,
-                 OpenNm = OpenNm,
-                 LandHa = LandHa,
-                 LandBu = LandBu,
                  #dataset
                  y = y,
                  #exposure
@@ -260,6 +145,5 @@ all_data <- list(#Data count variables
 saveRDS(all_data, here("data_outputs", 
                        "01_whwonests",
                        '03_JAGS_input_data',
-                       "01_whwonests",
                       "mod1_JAGS_input_data.RDS"))
 
