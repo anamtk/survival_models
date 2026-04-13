@@ -3,6 +3,7 @@
 
 # Load packages ---------------------------------------------------------------
 
+
 # Load packages, here and tidyverse for coding ease, 
 package.list <- c("here", "tidyverse", 
                   "patchwork") 
@@ -24,11 +25,24 @@ mod1 <- readRDS(here('data_outputs',
                      '04_posterior_summaries',
                      'Model1_posterior_summary.RDS'))
 
+mod1daily <- readRDS(here('data_outputs',
+                          '01_whwonests',
+                          '04_posterior_summaries',
+                          'Model1_Daily_posterior_summary.RDS'))
+
 mod2 <- readRDS(here('data_outputs',
                      '01_whwonests',
                      '04_posterior_summaries',
                      'Model2_posterior_summary.RDS'))
 
+mod2daily <- readRDS(here('data_outputs',
+                          '01_whwonests',
+                          '04_posterior_summaries',
+                          'Model2daily_posterior_summary.RDS'))
+mod2dailysubset <- readRDS(here('data_outputs',
+                                '01_whwonests',
+                                '04_posterior_summaries',
+                                'Model2daily_subset_posterior_summary.RDS'))
 mod3 <- readRDS(here('data_outputs',
                      '01_whwonests',
                      '04_posterior_summaries',
@@ -60,12 +74,20 @@ cov_effects_prep_fun <- function(model){
 
 mod1stats <- cov_effects_prep_fun(model = mod1) %>%
   mutate(model = "Total")
+mod1dailystats <- cov_effects_prep_fun(model = mod1daily) %>%
+  mutate(model = "Total_Daily")
 mod2stats <- cov_effects_prep_fun(model = mod2) %>%
   mutate(model = "Interval")
+mod2dailystats <- cov_effects_prep_fun(model = mod2daily) %>%
+  mutate(model = "Interval_Daily")
+mod2dailysubsetstats <- cov_effects_prep_fun(model = mod2dailysubset) %>%
+  mutate(model = "Interval_Daily_Subset")
 mod3stats <- cov_effects_prep_fun(model = mod3) %>%
   mutate(model = "Custom")
 
-all_stats <- bind_rows(mod1stats, mod2stats, mod3stats)
+all_stats <- bind_rows(mod1stats, mod1dailystats,
+                       mod2stats, mod2dailystats,
+                       mod2dailysubsetstats, mod3stats)
 
 
 # Plot --------------------------------------------------------------------
@@ -88,9 +110,12 @@ ggplot(all_stats, aes(x = Covariate, y = `50%`, color = model)) +
                       ymax = `97.5%`),
                   position = position_dodge(0.9)) +
   coord_flip() +
-  scale_color_manual(values = c('#8c96c6',
+  scale_color_manual(values = c('#9ebcda',
+                                '#8c96c6',
                                 '#8c6bb1',
-                                '#88419d')) 
+                                '#88419d',
+                                '#810f7c',
+                                '#4d004b')) 
 
 ggsave(here('pictures',
             'R',
@@ -106,14 +131,20 @@ ggsave(here('pictures',
 
 
 all_stats2 <- all_stats %>%
-  filter(model != "Total")
+  filter(model %in% c("Total_Daily",
+                      "Custom","Interval_Daily"))
 
-ggplot(all_stats2, aes(x = Covariate, y = `50%`, color = model)) +
-  geom_hline(yintercept = 0, linetype = 2) +
-  geom_pointrange(aes(ymin = `2.5%`,
-                      ymax = `97.5%`),
+covariate_effects_daily <- all_stats2 %>%
+  #filter(Covariate != "Precipitation^2") %>%
+ggplot(aes(x = `50%`, y = Covariate, color = model)) +
+  geom_vline(xintercept = 0, linetype = 2) +
+  geom_pointrange(aes(xmin = `2.5%`,
+                      xmax = `97.5%`),
                   position = position_dodge(0.9)) +
-  coord_flip() +
-  scale_color_manual(values = c('#8c96c6',
-                                '#8c6bb1')) 
+  #scale_x_sqrt() +
+  scale_color_manual(values = c('#9ebcda',
+                                '#8c96c6',
+                                '#8c6bb1',
+                                '#88419d',
+                                '#810f7c')) 
 

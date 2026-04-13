@@ -97,6 +97,16 @@ mod_GOF <- update(mod,
                      n.iter = 350,
                      codaOnly = TRUE)
 
+saveRDS(mod_GOF, here("data_outputs",
+                      '01_whwonests',
+                      '04_posterior_summaries',
+                      'mod1GOFsamples.RDS'))
+
+mod_GOF <- readRDS(here("data_outputs",
+                        '01_whwonests',
+                        '04_posterior_summaries',
+                        'mod1GOFsamples.RDS'))
+
 # Extract observed data from DF -------------------------------------------
 
 #we need to extract our observed data from our dataframe
@@ -117,6 +127,31 @@ yrep<- reshape2::melt(yreps) %>%
          "Nest_ID" = "Var2",
          "yrep" = "value")
 
+# prediction p ------------------------------------------------------------
+p <- as.data.frame(mod_GOF$sims.list$p) %>%
+  rownames_to_column(var = "sample") %>%
+  pivot_longer(-sample,
+               names_to = "Nest_ID",
+               values_to = "p_pos") %>%
+  mutate(Nest_ID = str_sub(Nest_ID, 2, nchar(Nest_ID))) %>%
+  mutate(Nest_ID = as.numeric(Nest_ID),
+         sample = as.numeric(sample)) %>%
+  rowwise() %>%
+  mutate(p_neg = 1-p_pos) %>%
+  ungroup()
+
+
+# Combine y, yrep, p and save ---------------------------------------------
+
+predict_df <- yrep %>%
+  left_join(p, by = c("Nest_ID", "sample")) %>%
+  left_join(y, by = "Nest_ID")
+  
+saveRDS(predict_df, 
+        here('data_outputs',
+             '01_whwonests',
+             '04_posterior_summaries',
+             'mod1_yyrepp_df.RDS'))
 # AUC ---------------------------------------------------------------------
 
 resp <- as.vector(y$y)

@@ -1,6 +1,9 @@
-# Running the nest survival model
+# Get inits for survival Model 1
 # Ana Miller-ter Kuile
-# November 4, 2021
+# March 31, 2023
+
+#this script runs an initial model for the full-survey interval 
+#survival model and gets initials for monsoon runs
 
 # Load packages ---------------------------------------------------------------
 
@@ -31,11 +34,12 @@ source(here("code",
             "GOF_functions.R"))
 
 # Load Data ---------------------------------------------------------------
-
+# 
+# #load the formatted data for the JAGS model
 data <- readRDS(here("data_outputs", 
                      "01_whwonests",
                      '03_JAGS_input_data',
-                     "mod3_JAGS_input_data.RDS"))
+                     "mod1_daily_JAGS_input_data.RDS"))
 
 # Parameters to save ------------------------------------------------------
 
@@ -50,9 +54,7 @@ params <- c(
             'sig.year',
             #covariates
             'b'
-          )
-                        
-
+            )
 
 
 # JAGS model --------------------------------------------------------------
@@ -60,11 +62,10 @@ params <- c(
 model <- here("code", 
               "01_whwonests",
               "02_analyses",
-              "model3",
+              "model1",
               "jags",
-              "model3.R")
+              "model1_totalexposure_daily.R")
 
-Sys.time() #~6 minutes
 mod <- jagsUI::jags(data = data,
                             inits = NULL,
                             model.file = model,
@@ -73,41 +74,38 @@ mod <- jagsUI::jags(data = data,
                             n.chains = 3,
                             n.iter = 4000,
                             DIC = TRUE)
-Sys.time()
 
 mcmcplot(mod$samples)
+
 gelman.diag(mod$samples, multivariate = F)
-# Check convergence -------------------------------------------------------
+
+
+# Graph Rhat --------------------------------------------------------------
 
 Rhat <- mod$Rhat
+
 #both have converged
 rhat_graph_fun2(Rhat)
 rhat_graph_fun(Rhat)
 
 # Update for goodness of fit ----------------------------------------------
 
-parms <- c("yrep_1", "yrep_2", 'resid_1', "resid_2", 'p1', "p2")
+parms <- c("yrep", 'resid', 'p')
 
-mod.update <- update(mod,
+mod_GOF <- update(mod,
                      parameters.to.save = parms,
                      n.iter = 350,
                      codaOnly = TRUE)
 
-mod_GOF <- mod.update
-
-saveRDS(mod.update, here("data_outputs",
+saveRDS(mod_GOF, here("data_outputs",
                       '01_whwonests',
                       '04_posterior_summaries',
-                      'mod3GOFsamples.RDS'))
+                      'mod1dailyGOFsamples.RDS'))
 
 mod_GOF <- readRDS(here("data_outputs",
                         '01_whwonests',
                         '04_posterior_summaries',
-                        'mod3GOFsamples.RDS'))
-
-
-
-
+                        'mod1dailyGOFsamples.RDS'))
 
 # Extract observed data from DF -------------------------------------------
 
@@ -120,68 +118,76 @@ y <- as.data.frame(data$y) %>%
 
 #extract the yreps, which for this model, which is an array of 
 # iterations, nests, visits to nests, or a 3-D matrix
-yrep_1 <- as.data.frame(mod_GOF$sims.list$yrep_1) %>%
-  mutate(sample = 1:n()) %>%
-  pivot_longer(1:(last_col()-1),
-               values_to = "yrep_1",
-               names_to = "Nest_ID") %>%
-  mutate(Nest_ID = str_sub(Nest_ID, 2, length(Nest_ID)))
+yreps <- mod_GOF$sims.list$yrep
 
-yrep_2 <- as.data.frame(mod_GOF$sims.list$yrep_2) %>%
-  mutate(sample = 1:n()) %>%
-  pivot_longer(1:(last_col()-1),
-               values_to = "yrep_2",
-               names_to = "Nest_ID") %>%
-  mutate(Nest_ID = str_sub(Nest_ID, 2, length(Nest_ID)))
+#Using the melt function from reshape2 package, turn the 3-D matrix
+#into a dataframe with a column for iteration ID, nest ID, and interval ID
+yrep<- reshape2::melt(yreps) %>%
+  rename("sample" = "Var1",
+         "Nest_ID" = "Var2",
+         "yrep" = "value")
 
-yrep <- yrep_1 %>%
-  full_join(yrep_2, by = c("Nest_ID", "sample")) %>%
-  mutate(yrep = case_when(!is.na(yrep_1) ~ yrep_1,
-                                !is.na(yrep_2) ~ yrep_2,
-                                TRUE ~ NA_real_)) %>%
-  dplyr::select(-yrep_1, -yrep_2) %>%
-  mutate(Nest_ID = as.numeric(Nest_ID))
 
-# Get df of y, yrep, p ----------------------------------------------------
+# Get predicted dataframe with p, y, yrep ---------------------------------
 
-p1 <- as.data.frame(mod_GOF$sims.list$p1) %>%
-  mutate(sample = 1:n()) %>%
-  pivot_longer(1:(last_col()-1),
-               values_to = "p1",
-               names_to = "Nest_ID") %>%
-  mutate(Nest_ID = str_sub(Nest_ID, 2, length(Nest_ID)))
-
-p2 <- as.data.frame(mod_GOF$sims.list$p2) %>%
-  mutate(sample = 1:n()) %>%
-  pivot_longer(1:(last_col()-1),
-               values_to = "p2",
-               names_to = "Nest_ID") %>%
-  mutate(Nest_ID = str_sub(Nest_ID, 2, length(Nest_ID)))
-
-pdf <- p1 %>%
-  full_join(p2, by = c("Nest_ID", "sample")) %>%
-  mutate(p = case_when(!is.na(p1) ~ p1,
-                          !is.na(p2) ~ p2,
-                          TRUE ~ NA_real_)) %>%
-  dplyr::select(-p1, -p2) %>%
-  mutate(Nest_ID = as.numeric(Nest_ID))
-
-#combine them all
-
-predict_df <- yrep %>%
-  left_join(pdf, by = c("sample", "Nest_ID")) %>%
-  left_join(y, by = "Nest_ID") %>%
-  rename("p_pos" = "p") %>%
+p <- as.data.frame(mod_GOF$sims.list$p) %>%
+  rownames_to_column(var = "sample") %>%
+  pivot_longer(-sample,
+               names_to = "Nest_ID",
+               values_to = "p_pos") %>%
+  mutate(Nest_ID = str_sub(Nest_ID, 2, nchar(Nest_ID))) %>%
+  mutate(Nest_ID = as.numeric(Nest_ID),
+         sample = as.numeric(sample)) %>%
   rowwise() %>%
   mutate(p_neg = 1-p_pos) %>%
   ungroup()
+
+
+# Combine y, yrep, p ------------------------------------------------------
+
+
+predict_df <- yrep %>%
+  left_join(p, by = c("Nest_ID", "sample")) %>%
+  left_join(y, by = "Nest_ID")
 
 saveRDS(predict_df, 
         here('data_outputs',
              '01_whwonests',
              '04_posterior_summaries',
-             'mod3_yyrepp_df.RDS'))
-# Confusion matrix dataset prep -------------------------------------------
+             'mod1daily_yyrepp_df.RDS'))
+
+# AUC ---------------------------------------------------------------------
+
+resp <- as.vector(y$y)
+
+iteration.num <- length(mod_GOF$sims.list$p[,1])
+
+mod1_AUC <- rep(NA, iteration.num)
+
+for(i in 1:iteration.num){
+  mod1_AUC[i] <- AUC_JAGS(mod_GOF, 
+                          iteration.num = i, 
+                          resp = resp)
+}
+
+mean <- as.data.frame(mod1_AUC) %>%
+  summarise(mean = mean(mod1_AUC)) %>%
+  as_vector()
+
+(mod1_AUC_plot <- as.data.frame(mod1_AUC) %>%
+    ggplot() +
+    geom_histogram(aes(x = mod1_AUC)) +
+    geom_vline(xintercept = mean, linetype = 2) +
+    labs(title = "Total survey exposure") )
+
+saveRDS(mod1_AUC, 
+        here('data_outputs',
+             '01_whwonests',
+             '05_for_plotting',
+             'mod1dailyAUC.RDS'))
+
+
+# Confusion matrix --------------------------------------------------------
 
 conf_df <- yrep %>%
   left_join(y, by = "Nest_ID")
@@ -227,7 +233,7 @@ ggplot(conf_summary, aes(x = 1, y = n, color = Classification)) +
 saveRDS(conf_summary, here("data_outputs", 
                            '01_whwonests',
                            '05_for_plotting',
-                           'confusion_mod3.RDS'))
+                           'confusion_mod1_daily.RDS'))
 
 conf_sum <- conf_summary %>%
   ungroup() %>%
@@ -240,107 +246,9 @@ conf_sum %>%
   reframe(Accuracy = (`True Positive` + `True Negative`)/
             (`True Positive` + `True Negative` + `False Positive` + `False Negative`),
           Balanced_Accuracy = ((`True Positive`/(`True Positive` + `False Negative`)) +
-                                 (`True Negative`/(`True Negative` + `False Positive`)))/2)
+            (`True Negative`/(`True Negative` + `False Positive`)))/2)
 
-
-# Graph observed versus simulated -----------------------------------------
-# 
-# #posterior predictive check graphical observation
-# (m3_pp <- ggplot() +
-#    #graph the simulated data
-#    geom_density(data = yrep, aes(x = Fate_class, group = Iteration, fill = type), 
-#                 alpha = 0.2) +
-#    geom_density(data = y, aes(x = Fate_class, fill = type), alpha = 0.5) + 
-#    facet_wrap(~type))
-# 
-# #look like it varies by iteration how well it does
-# 
-# # Predicted accuracy ------------------------------------------------------
-# 
-# mu_p1 <- as.data.frame(mod_GOF$mean$yrep_1) %>%
-#   rename("P" = 'mod_GOF$mean$yrep_1')
-# 
-# mu_p2 <- as.data.frame(mod_GOF$mean$yrep_2) %>%
-#   rename("P" = 'mod_GOF$mean$yrep_2') %>%
-#   filter(!is.na(P))
-# 
-# times <- as.data.frame(data$n.t) %>%
-#   rename("intervals" = "data$n.t")
-# 
-# mu_p <- mu_p1 %>%
-#   bind_rows(mu_p2)
-# 
-# y_acc <- y %>%
-#   bind_cols(mu_p, times) %>%
-#   mutate(Fate_class = as.factor(Fate_class)) %>%
-#   mutate(type = case_when((Fate_class == 0 & P >= .5) ~ "mis-0",
-#                           (Fate_class == 0 & P < .5) ~ "match-0",
-#                           (Fate_class == 1 & P >= 0.5) ~ "match-1",
-#                           (Fate_class == 1 & P < 0.5) ~ "mis-1"))
-# 
-# y_acc %>%
-#   group_by(type) %>%
-#   tally()
-# 
-# #accuary
-# #0s:
-# 80/(80+12) #87%
-# #1s:
-# 227/(227+11) #98%
-# 
-# (mod3_acc_plot <- ggplot(y_acc, aes(x = Fate_class, y = P)) +
-#     geom_hline(yintercept = 0.5, linetype = 2) +
-#     geom_boxplot() +
-#     labs(x = "Observed fate",
-#          y = "Predicted survival probability")  +
-#     annotate(geom = "text", 
-#              x = 0.75, y = 0.45,
-#              label = "0%") +
-#     annotate(geom = "text", 
-#              x = 2.25, y = 0.55,
-#              label = "95%"))
-# 
-# y_acc %>%
-#   group_by(Fate_class) %>%
-#   summarise(meanp = mean(P),
-#             sdp = sd(P),
-#             total = n(),
-#             sep = sdp/sqrt(total))
-# AUC ---------------------------------------------------------------------
-resp <- as.vector(data$y)
-
-iteration.num <- length(mod_GOF$sims.list$p1[,1])
-
-pred1 <- as.data.frame(t(mod_GOF$sims.list$p1))
-pred2 <- as.data.frame(t(mod_GOF$sims.list$p2))
-pred2 <- pred2[29:nrow(pred2),]
-
-pred <- rbind(pred1, pred2)
-
-mod3_AUC <- rep(NA, iteration.num)
-
-for(i in 1:iteration.num){
-  mod3_AUC[i] <- AUC_JAGS3(pred, 
-                           iteration.num = i, 
-                           resp = resp)
-}
-
-mean <- as.data.frame(mod3_AUC) %>%
-  summarise(mean = mean(mod3_AUC)) %>%
-  as_vector()
-
-(mod3_AUC_plot <- as.data.frame(mod3_AUC) %>%
-    ggplot() +
-    geom_histogram(aes(x = mod3_AUC)) +
-    geom_vline(xintercept = mean, linetype = 2) +
-    labs(title = "Custom probability, logit link"))
-
-saveRDS(mod3_AUC, 
-        here('data_outputs',
-             '01_whwonests',
-             '05_for_plotting',
-             'mod3AUC.RDS'))
-
+# Save summaries ----------------------------------------------------------
 
 # Output summary stats and coda samples -----------------------------------
 
@@ -363,14 +271,15 @@ saveRDS(samples_all2,
         here('data_outputs',
              '01_whwonests',
              '04_posterior_summaries',
-             'Model3_posterior_samples.RDS'))
+             'Model1_Daily_posterior_samples.RDS'))
+        
 summary <- summary(mod$samples)
 
 saveRDS(summary, 
         here('data_outputs',
              '01_whwonests',
              '04_posterior_summaries',
-             'Model3_posterior_summary.RDS'))
+             'Model1_Daily_posterior_summary.RDS'))
 
 
 

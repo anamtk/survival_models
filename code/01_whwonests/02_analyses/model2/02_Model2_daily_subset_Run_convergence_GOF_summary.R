@@ -36,7 +36,7 @@ source(here("code",
 data <- readRDS(here("data_outputs", 
                      "01_whwonests",
                      '03_JAGS_input_data',
-                     "mod2_JAGS_input_data.RDS"))
+                     "mod2_daily_subset_JAGS_input_data.RDS"))
 
 # Parameters to save ------------------------------------------------------
 
@@ -60,9 +60,9 @@ model <- here("code",
               "02_analyses",
               "model2",
               "jags",
-              "model2.R")
+              "model2_interval_daily.R")
 
-Sys.time() #~6 minutes
+Sys.time() #~ minutes
 mod <- jagsUI::jags(data = data,
                             inits = NULL,
                             model.file = model,
@@ -94,60 +94,6 @@ mod_GOF <- update(mod,
                   parameters.to.save = parms,
                   n.iter = 350,
                   codaOnly = TRUE)
-
-saveRDS(mod_GOF,  
-        here('data_outputs',
-             '01_whwonests',
-             '04_posterior_summaries',
-             'mod2GOFsamples.RDS'))
-
-mod_GOF <- readRDS(here('data_outputs',
-                        '01_whwonests',
-                        '04_posterior_summaries',
-                        'mod2GOFsamples.RDS'))
-
-# Get df of y, yrep, p for final interval ---------------------------------
-
-
-y_final <- as.data.frame(data$y) %>%
-  mutate(Nest_ID = 1:n()) %>%
-  pivot_longer(-Nest_ID,
-               names_to = "interval",
-               values_to = "y") %>%
-  filter(!is.na(y)) %>%
-  group_by(Nest_ID) %>%
-  filter(interval == max(interval)) %>%
-  ungroup() %>%
-  dplyr::select(-interval)
-
-yrep_final <- as.data.frame(mod_GOF$sims.list$y.repkeep) %>%
-  mutate(sample = 1:n()) %>%
-  pivot_longer(-sample,
-               names_to = "Nest_ID",
-               values_to = "yrep") %>%
-  mutate(Nest_ID = str_sub(Nest_ID, 2, nchar(Nest_ID))) %>%
-  mutate(Nest_ID = as.numeric(Nest_ID))
-
-p_final <- as.data.frame(mod_GOF$sims.list$p.intkeep) %>%
-  mutate(sample = 1:n()) %>%
-  pivot_longer(-sample,
-               names_to = "Nest_ID",
-               values_to = "p_pos") %>%
-  mutate(Nest_ID = str_sub(Nest_ID, 2, nchar(Nest_ID))) %>%
-  mutate(Nest_ID = as.numeric(Nest_ID)) %>%
-  rowwise() %>%
-  mutate(p_neg = 1-p_pos) %>%
-  ungroup()
-
-predict_df <- yrep_final %>%
-  left_join(p_final, by = c("sample", "Nest_ID")) %>%
-  left_join(y_final, by = "Nest_ID")
-
-saveRDS(predict_df, 
-        here('data_outputs',
-             '01_whwonests',
-             '04_posterior_summaries',
-             'mod2_yyrepp_df.RDS'))
 
 # AUC ---------------------------------------------------------------------
 
@@ -237,7 +183,7 @@ saveRDS(mod2_AUC2,
         here('data_outputs',
              '01_whwonests',
              '05_for_plotting',
-             'mod2AUC.RDS'))
+             'mod2dailyAUC.RDS'))
 
 # Confusion matrix --------------------------------------------------------
 
@@ -246,7 +192,7 @@ yrep <- mod_GOF$sims.list$yrep
 
 dimnames(yrep) <- list(c(1:1050),
                        c(1:322),
-                       c(1:16))
+                       c(1:2))
 
 yrep2 <- as.data.frame.table(yrep) %>%
   rename("sample" = "Var1",
@@ -303,7 +249,7 @@ ggplot(conf_summary, aes(x = 1, y = n, color = Classification)) +
 saveRDS(conf_summary, here("data_outputs", 
                            '01_whwonests',
                            '05_for_plotting',
-                           'confusion_mod2.RDS'))
+                           'confusion_mod2daily_subset.RDS'))
 
 conf_sum <- conf_summary %>%
   ungroup() %>%
@@ -341,7 +287,7 @@ saveRDS(samples_all2,
         here('data_outputs',
              '01_whwonests',
              '04_posterior_summaries',
-             'Model2_posterior_samples.RDS'))
+             'Model2daily_subset_posterior_samples.RDS'))
 
 summary <- summary(mod$samples)
 
@@ -349,5 +295,5 @@ saveRDS(summary,
         here('data_outputs',
              '01_whwonests',
              '04_posterior_summaries',
-             'Model2_posterior_summary.RDS'))
+             'Model2daily_subset_posterior_summary.RDS'))
 

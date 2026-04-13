@@ -36,7 +36,7 @@ source(here("code",
 data <- readRDS(here("data_outputs", 
                      "01_whwonests",
                      '03_JAGS_input_data',
-                     "mod2_JAGS_input_data.RDS"))
+                     "mod2_daily_JAGS_input_data.RDS"))
 
 # Parameters to save ------------------------------------------------------
 
@@ -60,9 +60,9 @@ model <- here("code",
               "02_analyses",
               "model2",
               "jags",
-              "model2.R")
+              "model2_interval_daily.R")
 
-Sys.time() #~6 minutes
+Sys.time() #~ minutes
 mod <- jagsUI::jags(data = data,
                             inits = NULL,
                             model.file = model,
@@ -99,15 +99,15 @@ saveRDS(mod_GOF,
         here('data_outputs',
              '01_whwonests',
              '04_posterior_summaries',
-             'mod2GOFsamples.RDS'))
+             'mod2dailyGOFsamples.RDS'))
 
 mod_GOF <- readRDS(here('data_outputs',
                         '01_whwonests',
                         '04_posterior_summaries',
-                        'mod2GOFsamples.RDS'))
+                        'mod2dailyGOFsamples.RDS'))
 
-# Get df of y, yrep, p for final interval ---------------------------------
 
+# Get final y, yrep, p ----------------------------------------------------
 
 y_final <- as.data.frame(data$y) %>%
   mutate(Nest_ID = 1:n()) %>%
@@ -147,7 +147,7 @@ saveRDS(predict_df,
         here('data_outputs',
              '01_whwonests',
              '04_posterior_summaries',
-             'mod2_yyrepp_df.RDS'))
+             'mod2daily_yyrepp_df.RDS'))
 
 # AUC ---------------------------------------------------------------------
 
@@ -237,7 +237,7 @@ saveRDS(mod2_AUC2,
         here('data_outputs',
              '01_whwonests',
              '05_for_plotting',
-             'mod2AUC.RDS'))
+             'mod2dailyAUC.RDS'))
 
 # Confusion matrix --------------------------------------------------------
 
@@ -303,7 +303,7 @@ ggplot(conf_summary, aes(x = 1, y = n, color = Classification)) +
 saveRDS(conf_summary, here("data_outputs", 
                            '01_whwonests',
                            '05_for_plotting',
-                           'confusion_mod2.RDS'))
+                           'confusion_mod2daily.RDS'))
 
 conf_sum <- conf_summary %>%
   ungroup() %>%
@@ -341,7 +341,7 @@ saveRDS(samples_all2,
         here('data_outputs',
              '01_whwonests',
              '04_posterior_summaries',
-             'Model2_posterior_samples.RDS'))
+             'Model2daily_posterior_samples.RDS'))
 
 summary <- summary(mod$samples)
 
@@ -349,5 +349,5 @@ saveRDS(summary,
         here('data_outputs',
              '01_whwonests',
              '04_posterior_summaries',
-             'Model2_posterior_summary.RDS'))
+             'Model2daily_posterior_summary.RDS'))
 

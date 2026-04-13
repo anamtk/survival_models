@@ -96,6 +96,12 @@ conf1 <- readRDS(here("data_outputs",
   dplyr::select(-sample) %>%
   mutate(model = 'Total')
 
+conf1daily <- readRDS(here("data_outputs", 
+                      '01_whwonests',
+                      '05_for_plotting',
+                      'confusion_mod1_daily.RDS')) %>%
+  dplyr::select(-sample) %>%
+  mutate(model = 'Total_Daily')
 
 conf2 <- readRDS(here("data_outputs", 
                       '01_whwonests',
@@ -104,6 +110,19 @@ conf2 <- readRDS(here("data_outputs",
   dplyr::select(-sample) %>%
   mutate(model = 'Interval')
 
+conf2daily <- readRDS(here("data_outputs", 
+                      '01_whwonests',
+                      '05_for_plotting',
+                      'confusion_mod2daily.RDS'))%>%
+  dplyr::select(-sample) %>%
+  mutate(model = 'Interval_Daily')
+
+conf2dailysubset <- readRDS(here("data_outputs", 
+                           '01_whwonests',
+                           '05_for_plotting',
+                           'confusion_mod2daily_subset.RDS'))%>%
+  dplyr::select(-sample) %>%
+  mutate(model = 'Interval_Daily_Subset')
 
 conf3 <- readRDS(here("data_outputs", 
                       '01_whwonests',
@@ -115,7 +134,10 @@ conf3 <- readRDS(here("data_outputs",
 
 # Combine confusion -------------------------------------------------------
 
-conf_all <- bind_rows(conf1, conf2, conf3)
+conf_all <- bind_rows(conf1, conf1daily,
+                      conf2, 
+                      conf2daily, conf2dailysubset,
+                      conf3)
 
 ggplot(conf_all, aes(x = model, y = n, color = Classification)) +
   geom_boxplot() +
